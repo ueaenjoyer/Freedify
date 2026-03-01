@@ -10,6 +10,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.2.0] - 2026-03-01
+
+### Improved
+- **Streaming Resilience**: Increased upstream proxy read timeout from 60s to 300s to prevent random mid-song pauses caused by slow CDN delivery from Tidal/Deezer.
+- **Faster Playback Start**: Switched audio load trigger from `canplaythrough` to `canplay` — playback begins as soon as the first few seconds are buffered instead of waiting for the browser's full-track estimate.
+- **Load Timeout**: Reduced track load timeout from 120s to 20s — failed tracks are detected and handled much faster.
+- **Uvicorn Keepalive**: Increased from default 5s to 120s in Dockerfile to prevent premature TCP connection closures on long streams.
+
+### Added
+- **Auto-Skip on Failure**: If a track fails to load, the player automatically skips to the next track in the queue with a toast notification. Cascades up to 5 consecutive failures before stopping.
+- **Stall Recovery**: New `stalled` event handler with a 10-second recovery timer — attempts a seek-to-resume (forces browser reconnect). If unrecoverable after 20s, auto-skips to the next track.
+- **Waiting Watchdog**: 15-second watchdog on the `waiting` event triggers a seek-recovery if the browser's audio buffer runs dry mid-song.
+- **Proxy Unbuffering**: Added `X-Accel-Buffering: no` header to all streaming responses so reverse proxies (Render, Tailscale, nginx) flush audio chunks immediately.
+- **Docker `.env` Security**: Refactored `docker-compose.yml` to pull all API keys from a local `.env` file. Added `.env.example` template for safe public sharing.
+- **Environment Variables**: Added support for Ticketmaster, SeatGeek, Setlist.fm, Spotify, Google, and Jamendo API keys in `.env` and `docker-compose.yml`.
+
+### Fixed
+- **Podcast Episode Modal**: Fixed `SyntaxError` from unescaped apostrophes in podcast descriptions breaking inline JSON handlers. Fixed `showPodcastModal` parsing a URL-encoded string instead of a JSON object. Restored missing `podcast-modal` HTML structure.
+
+---
+
 ## [1.1.9] - 2026-02-26
 
 ### Added

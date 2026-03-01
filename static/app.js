@@ -2133,6 +2133,8 @@ if (playerAlbum) {
 // Track load state to prevent duplicates
 let loadInProgress = false;
 let loadTimeoutId = null;
+let consecutiveFailures = 0; // Auto-skip counter
+const MAX_CONSECUTIVE_FAILURES = 5;
 
 async function loadTrack(track) {
     // Prevent duplicate loads
@@ -2206,7 +2208,7 @@ async function loadTrack(track) {
         
         await new Promise((resolve, reject) => {
             const cleanup = () => {
-                player.oncanplaythrough = null;
+                player.oncanplay = null;
                 player.onerror = null;
                 if (loadTimeoutId) {
                     clearTimeout(loadTimeoutId);
@@ -2214,7 +2216,8 @@ async function loadTrack(track) {
                 }
             };
             
-            player.oncanplaythrough = () => {
+            // Use canplay instead of canplaythrough for faster start
+            player.oncanplay = () => {
                 cleanup();
                 resolve();
             };
@@ -2222,11 +2225,15 @@ async function loadTrack(track) {
                 cleanup();
                 reject(new Error('Failed to load audio'));
             };
+            // Reduced timeout from 120s to 20s — if it hasn't started by then, skip
             loadTimeoutId = setTimeout(() => {
                 cleanup();
                 reject(new Error('Timeout loading audio'));
-            }, 120000);
+            }, 20000);
         });
+        
+        // Success — reset consecutive failure counter
+        consecutiveFailures = 0;
         
         hideLoading();
         player.play();
@@ -2242,7 +2249,22 @@ async function loadTrack(track) {
         
     } catch (error) {
         console.error('Playback error:', error);
-        showError('Failed to load track. Please try again.');
+        hideLoading();
+        consecutiveFailures++;
+        
+        // Auto-skip to next track if there are more in the queue
+        if (consecutiveFailures < MAX_CONSECUTIVE_FAILURES && state.currentIndex < state.queue.length - 1) {
+            console.log(`Auto-skipping failed track (${consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES}): ${track.name}`);
+            showToast(`Skipping "${track.name}" — failed to load`, 'warning');
+            loadInProgress = false; // Must reset before calling playNext
+            playNext();
+            return;
+        } else if (consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+            showError(`Unable to play — ${consecutiveFailures} tracks failed in a row. Please check your connection.`);
+            consecutiveFailures = 0;
+        } else {
+            showError('Failed to load track. No more tracks in queue.');
+        }
     } finally {
         loadInProgress = false;
     }
@@ -2423,6 +2445,63 @@ audioPlayer.addEventListener('progress', handleProgress);
 audioPlayer2.addEventListener('progress', handleProgress);
 audioPlayer.addEventListener('ended', handleEnded);
 audioPlayer2.addEventListener('ended', handleEnded);
+
+// ========== STALL RECOVERY ==========
+let stallRecoveryTimer = null;
+let waitingWatchdog = null;
+
+function handleStalled(e) {
+    if (e.target !== getActivePlayer()) return;
+    console.warn('Audio stream stalled — starting 10s recovery timer');
+    
+    // Clear any existing recovery timer
+    if (stallRecoveryTimer) clearTimeout(stallRecoveryTimer);
+    
+    stallRecoveryTimer = setTimeout(() => {
+        const player = getActivePlayer();
+        if (player.paused || player.ended) return; // Not actually playing
+        
+        // Try to recover by seeking to current position (forces reconnect)
+        const currentPos = player.currentTime;
+        console.warn('Stall recovery: seeking to', currentPos, 'to force reconnect');
+        player.currentTime = currentPos;
+        
+        // If still stalled after another 10s, auto-skip
+        stallRecoveryTimer = setTimeout(() => {
+            if (!player.paused && player.readyState < 3) {
+                console.warn('Stall unrecoverable — auto-skipping');
+                showToast('Stream stalled — skipping to next track', 'warning');
+                playNext();
+            }
+        }, 10000);
+    }, 10000);
+}
+
+function handleWaiting(e) {
+    if (e.target !== getActivePlayer()) return;
+    // Set a watchdog — if we're still waiting after 15s, try recovery
+    if (waitingWatchdog) clearTimeout(waitingWatchdog);
+    waitingWatchdog = setTimeout(() => {
+        const player = getActivePlayer();
+        if (!player.paused && player.readyState < 3) {
+            console.warn('Waiting watchdog triggered — attempting seek recovery');
+            player.currentTime = player.currentTime; // Force reconnect
+        }
+    }, 15000);
+}
+
+function handlePlaying(e) {
+    // Clear stall/waiting timers when playback resumes
+    if (stallRecoveryTimer) { clearTimeout(stallRecoveryTimer); stallRecoveryTimer = null; }
+    if (waitingWatchdog) { clearTimeout(waitingWatchdog); waitingWatchdog = null; }
+}
+
+audioPlayer.addEventListener('stalled', handleStalled);
+audioPlayer2.addEventListener('stalled', handleStalled);
+audioPlayer.addEventListener('waiting', handleWaiting);
+audioPlayer2.addEventListener('waiting', handleWaiting);
+audioPlayer.addEventListener('playing', handlePlaying);
+audioPlayer2.addEventListener('playing', handlePlaying);
 
 audioPlayer.addEventListener('timeupdate', handleTimeUpdate);
 audioPlayer2.addEventListener('timeupdate', handleTimeUpdate);

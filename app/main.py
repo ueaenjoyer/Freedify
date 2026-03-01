@@ -498,7 +498,9 @@ async def stream_audio(
 
             try:
                 # Create a local client instance (not shared).
-                client = httpx.AsyncClient(follow_redirects=True, timeout=60.0)
+                # Use long read timeout (300s) so slow upstream CDNs don't kill active streams
+                stream_timeout = httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
+                client = httpx.AsyncClient(follow_redirects=True, timeout=stream_timeout)
                 req = client.build_request("GET", target_stream_url, headers=req_headers)
                 r = await client.send(req, stream=True)
                 
@@ -506,7 +508,8 @@ async def stream_audio(
                 resp_headers = {
                     "Accept-Ranges": "bytes",
                     "Cache-Control": "public, max-age=3600",
-                    "Access-Control-Allow-Origin": "*"
+                    "Access-Control-Allow-Origin": "*",
+                    "X-Accel-Buffering": "no"
                 }
                 for key in ["Content-Range", "Content-Length", "Content-Type", "Last-Modified", "ETag"]:
                     if r.headers.get(key):
@@ -576,7 +579,9 @@ async def stream_audio(
                 logger.info(f"Forwarding Range header: {req_headers['Range']}")
 
             # Make initial request to get status/headers
-            client = httpx.AsyncClient(timeout=60.0, follow_redirects=True)
+            # Use long read timeout (300s) so slow upstream CDNs don't kill active streams
+            stream_timeout = httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
+            client = httpx.AsyncClient(timeout=stream_timeout, follow_redirects=True)
             try:
                 upstream_req = client.build_request("GET", target_stream_url, headers=req_headers)
                 upstream_resp = await client.send(upstream_req, stream=True)
@@ -585,7 +590,8 @@ async def stream_audio(
                 resp_headers = {
                     "Accept-Ranges": "bytes",
                     "Cache-Control": "public, max-age=3600",
-                    "Access-Control-Allow-Origin": "*"
+                    "Access-Control-Allow-Origin": "*",
+                    "X-Accel-Buffering": "no"
                 }
                 
                 # Forward important headers from upstream
