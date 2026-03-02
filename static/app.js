@@ -3791,58 +3791,51 @@ function updateMediaSession(track) {
     });
 }
 
-// Set up Media Session action handlers
+// Set up Media Session action handlers securely
 if ('mediaSession' in navigator) {
-    navigator.mediaSession.setActionHandler('play', () => {
-        // Resume AudioContext first (critical for headphone unpause on Android)
-        if (audioContext?.state === 'suspended') {
-            audioContext.resume().then(() => getActivePlayer().play().catch(() => {}));
-        } else {
-            getActivePlayer().play().catch(() => {});
-        }
-    });
-    
-    navigator.mediaSession.setActionHandler('pause', () => {
-        getActivePlayer().pause();
-    });
-    
-    navigator.mediaSession.setActionHandler('previoustrack', () => {
-        playPrevious();
-    });
-    
-    navigator.mediaSession.setActionHandler('nexttrack', () => {
-        playNext();
-    });
-    
-    navigator.mediaSession.setActionHandler('seekbackward', (details) => {
-        const player = getActivePlayer();
-        player.currentTime = Math.max(player.currentTime - (details.seekOffset || 10), 0);
-    });
-    
-    navigator.mediaSession.setActionHandler('seekforward', (details) => {
-        const player = getActivePlayer();
-        player.currentTime = Math.min(player.currentTime + (details.seekOffset || 10), player.duration);
-    });
-    
-    navigator.mediaSession.setActionHandler('seekto', (details) => {
-        const player = getActivePlayer();
-        if (details.fastSeek && 'fastSeek' in player) {
-            player.fastSeek(details.seekTime);
-        } else {
-            player.currentTime = details.seekTime;
-        }
-    });
-    
-    // Stop handler — reset playback state
-    try {
-        navigator.mediaSession.setActionHandler('stop', () => {
+    const actionHandlers = [
+        ['play', () => {
+            if (audioContext?.state === 'suspended') {
+                audioContext.resume().then(() => getActivePlayer().play().catch(() => {}));
+            } else {
+                getActivePlayer().play().catch(() => {});
+            }
+        }],
+        ['pause', () => getActivePlayer().pause()],
+        ['previoustrack', () => playPrevious()],
+        ['nexttrack', () => playNext()],
+        ['seekbackward', (details) => {
+            const player = getActivePlayer();
+            player.currentTime = Math.max(player.currentTime - (details.seekOffset || 10), 0);
+        }],
+        ['seekforward', (details) => {
+            const player = getActivePlayer();
+            player.currentTime = Math.min(player.currentTime + (details.seekOffset || 10), player.duration);
+        }],
+        ['seekto', (details) => {
+            const player = getActivePlayer();
+            if (details.fastSeek && 'fastSeek' in player) {
+                player.fastSeek(details.seekTime);
+            } else {
+                player.currentTime = details.seekTime;
+            }
+        }],
+        ['stop', () => {
             getActivePlayer().pause();
             getActivePlayer().currentTime = 0;
             state.isPlaying = false;
             updatePlayButton();
-            navigator.mediaSession.playbackState = 'none';
-        });
-    } catch(e) { /* stop not supported on all browsers */ }
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none';
+        }]
+    ];
+
+    for (const [action, handler] of actionHandlers) {
+        try {
+            navigator.mediaSession.setActionHandler(action, handler);
+        } catch (error) {
+            console.log(`MediaSession action '${action}' is not supported on this browser.`);
+        }
+    }
 }
 
 // Update position state for lock screen on BOTH players
