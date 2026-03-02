@@ -10,6 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.3.2] - 2026-03-02
+
+### Added
+- **Podcast Playback Speed Control**: Listeners can now toggle podcast playback speed between 0.8x, 1.0x, 1.25x, 1.5x, and 2.0x via the player bar.
+- **Dynamic Fullscreen Theming**: The fullscreen view now features a gorgeous blurred and tinted background effect dynamically derived from the current track's album art.
+- **Premium Color Themes**: Added 4 new curated developer themes ported directly from Aonsoku: Dracula, Catppuccin, Night Owl, and Nuclear.
+
+---
+
 ## [1.3.1] - 2026-03-02
 
 ### Fixed

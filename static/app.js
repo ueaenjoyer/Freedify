@@ -31,6 +31,7 @@ const state = {
     lastSearchType: 'track', // Store last search type
     history: JSON.parse(localStorage.getItem('freedify_history') || '[]'), // Listening history (last 50)
     library: JSON.parse(localStorage.getItem('freedify_library') || '[]'), // Saved/starred tracks
+    playbackSpeed: 1.0, // Default playback speed for podcasts
 };
 
 // ========== iOS AUDIO KEEPALIVE ==========
@@ -2090,17 +2091,34 @@ function updatePlayerUI() {
 // Update audio format badge (FLAC/MP3)
 async function updateFormatBadge(audioSrc) {
     const badge = document.getElementById('audio-format-badge');
+    const speedBtn = document.getElementById('playback-speed-btn');
     if (!badge) return;
     
     // For local files, show nothing
     if (!audioSrc || audioSrc.startsWith('blob:') || audioSrc.startsWith('file:')) {
         badge.classList.add('hidden');
+        if (speedBtn) speedBtn.classList.add('hidden');
         return;
     }
     
     // Get current track source to determine actual quality
     const currentTrack = state.queue[state.currentIndex];
     const source = currentTrack?.source || '';
+
+    // Playback Speed Logic for Podcasts
+    if (speedBtn) {
+        if (source === 'podcast') {
+            speedBtn.classList.remove('hidden');
+            speedBtn.textContent = state.playbackSpeed.toFixed(1) + 'x';
+            if (audioPlayer) audioPlayer.playbackRate = state.playbackSpeed;
+            if (audioPlayer2) audioPlayer2.playbackRate = state.playbackSpeed;
+        } else {
+            speedBtn.classList.add('hidden');
+            if (audioPlayer) audioPlayer.playbackRate = 1.0;
+            if (audioPlayer2) audioPlayer2.playbackRate = 1.0;
+        }
+    }
+
     
     // Determine format based on source
     const isHiResSource = source === 'dab' || source === 'qobuz';
@@ -2306,6 +2324,21 @@ playBtn.addEventListener('click', togglePlay);
 prevBtn.addEventListener('click', playPrevious);
 if (miniPlayerBtn) miniPlayerBtn.addEventListener('click', toggleMiniPlayer);
 nextBtn.addEventListener('click', playNext);
+
+const playbackSpeedBtn = document.getElementById('playback-speed-btn');
+if (playbackSpeedBtn) {
+    playbackSpeedBtn.addEventListener('click', () => {
+        const speeds = [1.0, 1.25, 1.5, 2.0, 0.8];
+        const currentIdx = speeds.indexOf(state.playbackSpeed) !== -1 ? speeds.indexOf(state.playbackSpeed) : 0;
+        state.playbackSpeed = speeds[(currentIdx + 1) % speeds.length];
+        
+        playbackSpeedBtn.textContent = state.playbackSpeed.toFixed(1) + 'x';
+        
+        if (audioPlayer) audioPlayer.playbackRate = state.playbackSpeed;
+        if (audioPlayer2) audioPlayer2.playbackRate = state.playbackSpeed;
+    });
+}
+
 
 // Shuffle current queue
 shuffleQueueBtn.addEventListener('click', () => {
@@ -3738,7 +3771,7 @@ themeOptions.forEach(opt => {
         const newTheme = opt.dataset.theme;
         
         // Remove all theme classes
-        document.body.classList.remove('theme-purple', 'theme-blue', 'theme-green', 'theme-pink', 'theme-orange');
+        document.body.classList.remove('theme-purple', 'theme-blue', 'theme-green', 'theme-pink', 'theme-orange', 'theme-dracula', 'theme-catppuccin', 'theme-nightowl', 'theme-nuclear');
         
         // Add new theme
         if (newTheme) {

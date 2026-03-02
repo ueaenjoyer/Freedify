@@ -77,6 +77,70 @@
     --accent-glow: rgba(249, 115, 22, 0.3);
 }
 
+.theme-dracula {
+    --bg-primary: #282a36;
+    --bg-secondary: #21222c;
+    --bg-tertiary: #44475a;
+    --bg-elevated: #6272a4;
+    
+    --text-primary: #f8f8f2;
+    --text-secondary: #bfbfbf;
+    --text-tertiary: #8be9fd;
+
+    --accent: #bd93f9;
+    --accent-light: #ff79c6;
+    --accent-dark: #6272a4;
+    --accent-glow: rgba(189, 147, 249, 0.3);
+}
+
+.theme-catppuccin {
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #181825;
+    --bg-tertiary: #313244;
+    --bg-elevated: #45475a;
+    
+    --text-primary: #cdd6f4;
+    --text-secondary: #bac2de;
+    --text-tertiary: #a6adc8;
+
+    --accent: #cba6f7;
+    --accent-light: #f5c2e7;
+    --accent-dark: #89b4fa;
+    --accent-glow: rgba(203, 166, 247, 0.3);
+}
+
+.theme-nightowl {
+    --bg-primary: #011627;
+    --bg-secondary: #01121d;
+    --bg-tertiary: #0b2942;
+    --bg-elevated: #1d3b53;
+    
+    --text-primary: #d6deeb;
+    --text-secondary: #82aaff;
+    --text-tertiary: #5f7e97;
+
+    --accent: #c792ea;
+    --accent-light: #ffeb95;
+    --accent-dark: #22d3ee;
+    --accent-glow: rgba(199, 146, 234, 0.3);
+}
+
+.theme-nuclear {
+    --bg-primary: #151a21;
+    --bg-secondary: #101419;
+    --bg-tertiary: #232c38;
+    --bg-elevated: #3a485a;
+
+    --text-primary: #f8f8f2;
+    --text-secondary: #bfbfbf;
+    --text-tertiary: #b0b0b0;
+
+    --accent: #ff007f;
+    --accent-light: #ff4d94;
+    --accent-dark: #cc0066;
+    --accent-glow: rgba(255, 0, 127, 0.3);
+}
+
 /* ==================== Reset & Base ==================== */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -1996,15 +2060,16 @@ body {
 
 .fs-backdrop {
     position: absolute;
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%;
+    top: -5%; 
+    left: -5%; 
+    width: 110%; 
+    height: 110%;
     z-index: -1;
     background-size: cover;
     background-position: center;
-    opacity: 0.15;
-    filter: blur(50px);
+    opacity: 0.6;
+    filter: blur(40px) brightness(0.5);
+    transition: background-image 1s ease-in-out;
 }
 
 .fs-content {
