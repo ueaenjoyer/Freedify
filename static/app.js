@@ -3057,9 +3057,9 @@ async function updateFormatBadge(audioSrc) {
     const currentTrack = state.queue[state.currentIndex];
     const source = currentTrack?.source || '';
 
-    // Playback Speed Logic for Podcasts
+    // Playback Speed Logic for Podcasts and Audiobooks
     if (speedBtn) {
-        if (source === 'podcast') {
+        if (source === 'podcast' || source === 'audiobook') {
             speedBtn.classList.remove('hidden');
             speedBtn.textContent = state.playbackSpeed.toFixed(1) + 'x';
             if (audioPlayer) audioPlayer.playbackRate = state.playbackSpeed;
@@ -3312,7 +3312,7 @@ nextBtn.addEventListener('click', playNext);
 const playbackSpeedBtn = document.getElementById('playback-speed-btn');
 if (playbackSpeedBtn) {
     playbackSpeedBtn.addEventListener('click', () => {
-        const speeds = [1.0, 1.25, 1.5, 2.0, 0.8];
+        const speeds = [1.0, 1.25, 1.5, 2.0];
         const currentIdx = speeds.indexOf(state.playbackSpeed) !== -1 ? speeds.indexOf(state.playbackSpeed) : 0;
         state.playbackSpeed = speeds[(currentIdx + 1) % speeds.length];
         

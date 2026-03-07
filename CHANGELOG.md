@@ -10,6 +10,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.3.5] - 2026-03-07
+
+### Added
+- **Audiobook Playback Speed**: Added adjustable playback speed controls (1x, 1.25x, 1.5x, 2x) to the player bar when listening to audiobooks.
+
+### Fixed
+- **Premiumize Root File Detection**: Fixed an issue where single-file audiobooks downloaded to the root directory were not detected, enabling seamless mapping and playback.
+- **Audiobook Metadata Mismatch**: Resolved a bug where saving a direct-file audiobook resulted in incorrect metadata (e.g., retrieving "The Shining" instead of the actual book) by standardizing the `showDetailView` object structure.
+- **Audiobook Streaming Links**: Corrected the internal ISRC Base64 formatting for direct Premiumize file streams so the audio engine can actually play them.
+
+---
+
 ## [1.3.4] - 2026-03-07
 
 ### Fixed
