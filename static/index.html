@@ -105,6 +105,7 @@
                 <button class="type-btn" data-type="album">Albums</button>
                 <button class="type-btn" data-type="artist">Artists</button>
                 <button class="type-btn" data-type="podcast">Podcasts</button>
+                <button class="type-btn" data-type="audiobook">Audiobooks</button>
                 <button id="search-more-btn" class="type-btn more-btn">⋮ More</button>
             </div>
             
@@ -382,7 +383,86 @@
             </div>
         </div>
 
-        <!-- Bottom Player -->
+        <!-- Audiobook Details Modal -->
+        <div id="audiobook-modal" class="album-modal hidden">
+            <div class="album-modal-overlay"></div>
+            <div class="album-modal-content">
+                <div class="album-modal-header">
+                    <button id="audiobook-modal-close" class="album-modal-close" title="Close">×</button>
+                    <h2>Audiobook Details</h2>
+                </div>
+                
+                <div class="album-modal-body">
+                    <div class="album-modal-info">
+                        <img id="audiobook-modal-art" class="album-modal-art" src="" alt="Audiobook Cover">
+                        <div class="album-modal-meta">
+                            <h3 id="audiobook-modal-title" class="album-modal-title">Audiobook Title</h3>
+                            
+                            <!-- Action Buttons -->
+                            <div class="album-action-buttons">
+                                <button id="audiobook-download-btn" class="album-action-btn primary">☁️ Download to Premiumize</button>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div id="audiobook-progress-container" class="hidden" style="margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span id="audiobook-progress-status" style="font-size: 0.9rem;">Starting...</span>
+                                    <span id="audiobook-progress-percent" style="font-size: 0.9rem; font-weight: bold;">0%</span>
+                                </div>
+                                <div class="progress-bar" style="background: var(--bg-surface); cursor: default; height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div id="audiobook-progress-fill" style="height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s ease;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Quality Badge -->
+                            <div id="audiobook-modal-quality" class="album-quality-badge" style="margin-top: 15px;">
+                                AudiobookBay Torrent
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Audiobook Info -->
+                    <div id="audiobook-modal-info-tab" class="album-modal-info-tab">
+                        <p id="audiobook-modal-description" style="white-space: pre-wrap; margin-top: 20px;">Audiobook description...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Book Info Modal (My Books) -->
+        <div id="book-info-modal" class="book-info-modal hidden">
+            <div class="book-info-overlay"></div>
+            <div class="book-info-content">
+                <button id="book-info-close" class="book-info-close" title="Close">×</button>
+                <div class="book-info-header">
+                    <img id="book-info-art" class="book-info-art" src="" alt="Book Cover">
+                    <div class="book-info-meta">
+                        <h2 id="book-info-title">Book Title</h2>
+                        <p id="book-info-author" class="book-info-author">Author</p>
+                        <div id="book-info-badges" class="book-info-badges"></div>
+                        <div class="book-info-actions">
+                            <button id="book-info-play-btn" class="album-action-btn primary">▶ Play</button>
+                            <button id="book-info-chapters-btn" class="album-action-btn">📑 Chapters</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="book-info-tabs">
+                    <button class="book-info-tab active" data-tab="description">Description</button>
+                    <button class="book-info-tab" data-tab="reviews">Goodreads Reviews</button>
+                </div>
+                <div id="book-info-desc-tab" class="book-info-tab-content active">
+                    <div id="book-info-description" class="book-info-description">Loading description...</div>
+                </div>
+                <div id="book-info-reviews-tab" class="book-info-tab-content">
+                    <div id="book-info-goodreads" class="book-info-goodreads">
+                        <div class="book-info-loading">
+                            <div class="spinner"></div>
+                            <p>Fetching Goodreads data...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="player-bar" class="player-bar hidden">
             <!-- Main visible row (Art + Info + Primary Controls) -->
             <div class="player-main-row">

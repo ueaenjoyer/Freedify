@@ -1,6 +1,6 @@
 # Freedify - Music Streaming Web App
 
-*Last updated: March 1, 2026*
+*Last updated: March 7, 2026*
 
 Stream music and podcasts from anywhere. **Generate smart playlists with AI**, search songs, albums, artists, podcasts or paste URLs from Spotify, SoundCloud, Bandcamp, Archive.org, Phish.in, and more.
 
@@ -138,6 +138,21 @@ Open [http://localhost:8000](http://localhost:8000) and start streaming! 🎵
 - **Quick Resume** - Click any item to instantly start playing
 - **Smart History** - Tracks last 50 played songs automatically
 - **Cross-Device** - History and library sync via Google Drive
+
+### 🎙️ Podcasts
+- **My Podcasts** - Dedicated page to save and organize your favorite shows
+- **Episode Resume** - Automatically saves playback position for episodes and resumes where you left off
+- **Mark as Played** - Keep track of finished episodes with ✅ toggles
+- **History & Tags** - View recently played episodes and organize favorites with custom tags
+- **Queue & Download** - Episodes seamlessly integrate with the player queue and can be downloaded
+
+### 📚 Audiobooks
+- **My Books** - Audiobook bookshelf to save, organize, and resume your audiobooks
+- **AudiobookBay Search** - Search and download audiobooks via AudiobookBay + Premiumize integration
+- **Book Info Modal** - Click any book for cover art, description, chapters, and play/resume controls
+- **Goodreads Reviews** - Integrated ratings, genres, and top community reviews from Goodreads
+- **Resume Playback** - Cached audiobook tracks resume where you left off — even from the bookshelf
+- **Google Drive Sync** - Audiobook favorites, cached tracks, and progress sync across devices
 
 ### ⭐ My Library
 - **Star to Save** - Click ★ on any track to save to your Library (separate from playlists)
@@ -396,6 +411,7 @@ When deploying to Render (or other hosts), set these in your Dashboard:
 | `SEATGEEK_CLIENT_ID` | For Concert Search fallback (free at seatgeek.com/account/develop) |
 | `DAB_SESSION` | **Recommended** - For Hi-Res (24-bit) Audio (from Dab/Qobuz) |
 | `DAB_VISITOR_ID` | **Recommended** - For Hi-Res (24-bit) Audio (from Dab/Qobuz) |
+| `PREMIUMIZE_API_KEY` | For Audiobook streaming via Premiumize (get at premiumize.me/account) |
 
 ### How to Get Dab Music Cookies (for Hi-Res Audio)
 

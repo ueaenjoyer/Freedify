@@ -10,6 +10,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.3.3] - 2026-03-07
+
+### Added
+- **My Podcasts Favorites Page**: Save and manage favorite podcasts with ❤️ toggle on search cards and a dedicated grid view. Click the Podcasts tab to see your saved shows.
+- **Episode Resume Position**: Automatically saves playback position for podcast episodes and resumes where you left off.
+- **Mark as Played**: Toggle episodes as played/unplayed with ✅ buttons — automatically marks episodes as played when they finish.
+- **Podcast Episode History**: Recently played episodes section on the My Podcasts page with resume indicators.
+- **Podcast Categories/Tags**: Tag podcasts with custom categories (e.g., Tech, Comedy) and filter your favorites by tag.
+- **Episode Download**: Download podcast episodes via the existing download infrastructure from the episode detail view.
+- **Podcast Queue Integration**: Podcast episodes seamlessly integrate with the existing queue system with source-aware tracking.
+- **Unplayed Episode Indicators**: Resume position indicators appear on episode rows showing where you stopped listening.
+- **My Books (Audiobooks)**: Dedicated audiobook bookshelf in the Audiobooks tab. Favorite audiobooks from AudiobookBay search, cache Premiumize downloads, and resume playback across sessions.
+- **Book Info Modal**: Click any book in My Books to view a rich detail modal with cover art, chapter count, and play/resume controls.
+- **Goodreads Integration**: Book Info modal fetches Goodreads ratings, descriptions, genres, and top 5 community reviews via a score-based search that filters out derivative "summary" books.
+- **Audiobook Resume from My Books**: Cached audiobook tracks are stored locally so subsequent plays from My Books resume correctly without re-fetching from Premiumize.
+- **Google Drive Sync**: All podcast and audiobook data (favorites, played status, resume positions, history, tags, cached tracks) syncs to Google Drive alongside existing data.
+
+### New Backend Services
+- **`goodreads_service.py`**: Goodreads web scraper using httpx + BeautifulSoup — searches books, parses ratings/reviews/descriptions, filters derivative books via scoring.
+- **`audiobookbay_service.py`**: AudiobookBay search and detail scraper for audiobook discovery.
+- **`premiumize_service.py`**: Premiumize.me integration for audiobook torrent caching and streaming.
+
+---
+
 ## [1.3.2] - 2026-03-02
 
 ### Added

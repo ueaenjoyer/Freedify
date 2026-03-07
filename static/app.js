@@ -32,6 +32,13 @@ const state = {
     history: JSON.parse(localStorage.getItem('freedify_history') || '[]'), // Listening history (last 50)
     library: JSON.parse(localStorage.getItem('freedify_library') || '[]'), // Saved/starred tracks
     playbackSpeed: 1.0, // Default playback speed for podcasts
+    podcastFavorites: JSON.parse(localStorage.getItem('freedify_podcasts') || '[]'), // Favorited podcasts
+    audiobookFavorites: JSON.parse(localStorage.getItem('freedify_audiobooks') || '[]'), // Favorited books
+    podcastPlayedEpisodes: JSON.parse(localStorage.getItem('freedify_podcast_played') || '{}'), // {episodeId: true}
+    podcastResumePositions: JSON.parse(localStorage.getItem('freedify_podcast_resume') || '{}'), // {episodeId: seconds}
+    podcastHistory: JSON.parse(localStorage.getItem('freedify_podcast_history') || '[]'), // Recently played episodes
+    podcastTags: JSON.parse(localStorage.getItem('freedify_podcast_tags') || '{}'), // {podcastId: ['tag1','tag2']}
+    lastSavedPositionTime: 0 // In-memory tracker for resume saves
 };
 
 // ========== iOS AUDIO KEEPALIVE ==========
@@ -383,6 +390,22 @@ allTypeBtns.forEach(btn => {
         } else if (state.searchType === 'rec') {
             renderRecommendations();
             return;
+        } else if (state.searchType === 'podcast') {
+            const query = searchInput.value.trim();
+            if (query) {
+                performSearch(query);
+            } else {
+                renderMyPodcastsView();
+            }
+            return;
+        } else if (state.searchType === 'audiobook') {
+            const query = searchInput.value.trim();
+            if (query) {
+                performSearch(query);
+            } else {
+                renderMyBooksView();
+            }
+            return;
         }
         
         const query = searchInput.value.trim();
@@ -504,7 +527,8 @@ function addToHistory(track) {
         album_art: track.album_art || track.image || '/static/icon.svg',
         isrc: track.isrc || track.id,
         duration: track.duration || '0:00',
-        listenedAt: Date.now()
+        listenedAt: Date.now(),
+        source: track.source || 'youtube'
     };
     
     // Remove existing entry for same track (to move it to top)
@@ -542,7 +566,8 @@ function addToLibrary(track) {
         album_art: track.album_art || track.image || '/static/icon.svg',
         isrc: track.isrc || track.id,
         duration: track.duration || '0:00',
-        addedAt: Date.now()
+        addedAt: Date.now(),
+        source: track.source || 'youtube'
     };
     
     state.library.unshift(libraryEntry);
@@ -595,7 +620,8 @@ function addAllToLibrary(tracks) {
                 album_art: track.album_art || track.image || '/static/icon.svg',
                 isrc: track.isrc || track.id,
                 duration: track.duration || '0:00',
-                addedAt: Date.now()
+                addedAt: Date.now(),
+                source: track.source || 'youtube'
             };
             state.library.unshift(libraryEntry);
             addedCount++;
@@ -615,6 +641,211 @@ function addAllToLibrary(tracks) {
 window.toggleLibrary = toggleLibrary;
 window.isInLibrary = isInLibrary;
 window.addAllToLibrary = addAllToLibrary;
+
+// ========== PODCAST FAVORITES ==========
+function savePodcastFavorites() {
+    localStorage.setItem('freedify_podcasts', JSON.stringify(state.podcastFavorites));
+}
+
+function addPodcastFavorite(podcast) {
+    if (!podcast || !podcast.id) return false;
+    if (state.podcastFavorites.some(p => p.id === podcast.id)) return false;
+    
+    state.podcastFavorites.unshift({
+        id: podcast.id,
+        name: podcast.name,
+        artist: podcast.artists || podcast.artist || '',
+        artwork: podcast.album_art || podcast.artwork || '/static/icon.svg',
+        addedAt: Date.now(),
+        tags: []
+    });
+    savePodcastFavorites();
+    showToast(`❤️ Saved "${podcast.name}" to My Podcasts`);
+    return true;
+}
+
+function removePodcastFavorite(podcastId) {
+    const idx = state.podcastFavorites.findIndex(p => p.id === podcastId);
+    if (idx !== -1) {
+        const podcast = state.podcastFavorites[idx];
+        state.podcastFavorites.splice(idx, 1);
+        savePodcastFavorites();
+        showToast(`Removed "${podcast.name}" from My Podcasts`);
+        return true;
+    }
+    return false;
+}
+
+function isPodcastFavorited(podcastId) {
+    return state.podcastFavorites.some(p => p.id === podcastId);
+}
+
+function togglePodcastFavorite(podcast) {
+    if (isPodcastFavorited(podcast.id)) {
+        removePodcastFavorite(podcast.id);
+        return false;
+    } else {
+        addPodcastFavorite(podcast);
+        return true;
+    }
+}
+
+window.togglePodcastFavorite = togglePodcastFavorite;
+
+// ========== AUDIOBOOK FAVORITES ==========
+function saveAudiobookFavorites() {
+    localStorage.setItem('freedify_audiobooks', JSON.stringify(state.audiobookFavorites));
+}
+
+function addAudiobookFavorite(book) {
+    if (!book || !book.id) return false;
+    if (state.audiobookFavorites.some(b => b.id === book.id)) return false;
+    
+    state.audiobookFavorites.unshift({
+        id: book.id,
+        name: book.name || book.title,
+        artist: book.artists || book.artist || 'AudiobookBay',
+        artwork: book.album_art || book.cover_image || book.artwork || '/static/icon.svg',
+        addedAt: Date.now()
+    });
+    saveAudiobookFavorites();
+    showToast(`❤️ Saved "${book.name || book.title}" to My Books`);
+    return true;
+}
+
+function removeAudiobookFavorite(bookId) {
+    const idx = state.audiobookFavorites.findIndex(b => b.id === bookId);
+    if (idx !== -1) {
+        const book = state.audiobookFavorites[idx];
+        state.audiobookFavorites.splice(idx, 1);
+        saveAudiobookFavorites();
+        showToast(`Removed "${book.name}" from My Books`);
+        return true;
+    }
+    return false;
+}
+
+function isAudiobookFavorited(bookId) {
+    return state.audiobookFavorites.some(b => b.id === bookId);
+}
+
+function toggleAudiobookFavorite(book) {
+    if (isAudiobookFavorited(book.id)) {
+        removeAudiobookFavorite(book.id);
+        return false;
+    } else {
+        addAudiobookFavorite(book);
+        return true;
+    }
+}
+
+window.toggleAudiobookFavorite = toggleAudiobookFavorite;
+window.isPodcastFavorited = isPodcastFavorited;
+
+// ========== PODCAST EPISODE TRACKING ==========
+function savePodcastPlayed() {
+    localStorage.setItem('freedify_podcast_played', JSON.stringify(state.podcastPlayedEpisodes));
+}
+
+function markEpisodePlayed(episodeId) {
+    state.podcastPlayedEpisodes[episodeId] = true;
+    savePodcastPlayed();
+}
+
+function markEpisodeUnplayed(episodeId) {
+    delete state.podcastPlayedEpisodes[episodeId];
+    savePodcastPlayed();
+}
+
+function isEpisodePlayed(episodeId) {
+    return !!state.podcastPlayedEpisodes[episodeId];
+}
+
+function toggleEpisodePlayed(episodeId) {
+    if (isEpisodePlayed(episodeId)) {
+        markEpisodeUnplayed(episodeId);
+        return false;
+    } else {
+        markEpisodePlayed(episodeId);
+        return true;
+    }
+}
+
+window.toggleEpisodePlayed = toggleEpisodePlayed;
+window.isEpisodePlayed = isEpisodePlayed;
+
+// ========== PODCAST RESUME POSITIONS ==========
+function savePodcastResumePositions() {
+    localStorage.setItem('freedify_podcast_resume', JSON.stringify(state.podcastResumePositions));
+}
+
+function saveEpisodePosition(episodeId, seconds) {
+    if (seconds > 5) { // Only save if >5 seconds in
+        state.podcastResumePositions[episodeId] = Math.floor(seconds);
+        savePodcastResumePositions();
+    }
+}
+
+function getEpisodePosition(episodeId) {
+    return state.podcastResumePositions[episodeId] || 0;
+}
+
+function clearEpisodePosition(episodeId) {
+    delete state.podcastResumePositions[episodeId];
+    savePodcastResumePositions();
+}
+
+// ========== PODCAST HISTORY ==========
+function savePodcastHistory() {
+    localStorage.setItem('freedify_podcast_history', JSON.stringify(state.podcastHistory));
+}
+
+function addToPodcastHistory(episode) {
+    if (!episode || !episode.id) return;
+    // Remove existing entry if present
+    state.podcastHistory = state.podcastHistory.filter(e => e.id !== episode.id);
+    state.podcastHistory.unshift({
+        id: episode.id,
+        name: episode.name,
+        artists: episode.artists || '',
+        album_art: episode.album_art || '/static/icon.svg',
+        duration: episode.duration || '0:00',
+        playedAt: Date.now(),
+        source: episode.source || 'podcast'
+    });
+    // Keep last 50
+    if (state.podcastHistory.length > 50) state.podcastHistory = state.podcastHistory.slice(0, 50);
+    savePodcastHistory();
+}
+
+// ========== PODCAST TAGS ==========
+function savePodcastTags() {
+    localStorage.setItem('freedify_podcast_tags', JSON.stringify(state.podcastTags));
+}
+
+function setPodcastTags(podcastId, tags) {
+    state.podcastTags[podcastId] = tags;
+    savePodcastTags();
+    // Also update the favorite entry
+    const fav = state.podcastFavorites.find(p => p.id === podcastId);
+    if (fav) {
+        fav.tags = tags;
+        savePodcastFavorites();
+    }
+}
+
+function getPodcastTags(podcastId) {
+    return state.podcastTags[podcastId] || [];
+}
+
+function getAllUsedTags() {
+    const tags = new Set();
+    Object.values(state.podcastTags).forEach(arr => arr.forEach(t => tags.add(t)));
+    return [...tags].sort();
+}
+
+window.setPodcastTags = setPodcastTags;
+window.getPodcastTags = getPodcastTags;
 
 function renderPlaylistsView() {
     hideLoading();
@@ -696,6 +927,508 @@ function renderPlaylistsView() {
             }
         });
     });
+}
+
+// ========== MY PODCASTS PAGE ==========
+function renderMyPodcastsView() {
+    hideLoading();
+    detailView.classList.add('hidden');
+    resultsSection.classList.remove('hidden');
+    
+    if (state.podcastFavorites.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🎙️</span>
+                <p>No saved podcasts yet</p>
+                <p style="font-size: 0.9em; opacity: 0.7;">Search for podcasts and tap ❤️ to save them here</p>
+                <button onclick="document.getElementById('search-input').focus(); document.getElementById('search-input').placeholder='Search podcasts...';" class="btn-secondary" style="margin-top: 12px; padding: 8px 20px;">🔍 Search Podcasts</button>
+            </div>
+        `;
+        return;
+    }
+    
+    // Build tag filter bar
+    const allTags = getAllUsedTags();
+    let tagFilterHtml = '';
+    if (allTags.length > 0) {
+        tagFilterHtml = `
+            <div class="podcast-tag-filter" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+                <button class="podcast-tag-btn active" data-tag="all">All</button>
+                ${allTags.map(tag => `<button class="podcast-tag-btn" data-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</button>`).join('')}
+            </div>
+        `;
+    }
+    
+    const headerHtml = `
+        <div class="playlists-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h2>🎙️ My Podcasts</h2>
+        </div>
+        ${tagFilterHtml}
+    `;
+    
+    const grid = document.createElement('div');
+    grid.className = 'results-grid';
+    grid.id = 'my-podcasts-grid';
+    
+    state.podcastFavorites.forEach(podcast => {
+        const tags = getPodcastTags(podcast.id);
+        const tagStr = tags.length > 0 ? tags.join(', ') : '';
+        grid.innerHTML += `
+            <div class="album-item podcast-fav-item" data-podcast-id="${podcast.id}" data-tags="${escapeHtml(tags.join(','))}">
+                <div class="album-art-container">
+                    <img src="${podcast.artwork || '/static/icon.svg'}" alt="${escapeHtml(podcast.name)}" class="album-art" loading="lazy">
+                </div>
+                <div class="album-info">
+                    <div class="album-name">${escapeHtml(podcast.name)}</div>
+                    <div class="album-artist">${escapeHtml(podcast.artist || '')}</div>
+                    ${tagStr ? `<div class="podcast-tag-display" style="font-size: 0.7rem; opacity: 0.6; margin-top: 2px;">${escapeHtml(tagStr)}</div>` : ''}
+                </div>
+                <button class="podcast-fav-btn favorited" title="Remove from My Podcasts" data-podcast-id="${podcast.id}">❤️</button>
+                <button class="podcast-tag-edit-btn" title="Edit Tags" data-podcast-id="${podcast.id}">🏷️</button>
+            </div>
+        `;
+    });
+    
+    resultsContainer.innerHTML = headerHtml;
+    resultsContainer.appendChild(grid);
+    
+    // Render recent podcast history section if available
+    if (state.podcastHistory.length > 0) {
+        const historySection = document.createElement('div');
+        historySection.style.marginTop = '32px';
+        historySection.innerHTML = `
+            <h3 style="margin-bottom: 12px; color: var(--text-primary);">🕐 Recently Played Episodes</h3>
+            <div class="results-list" id="podcast-history-list">
+                ${state.podcastHistory.slice(0, 10).map(ep => {
+                    const resumePos = getEpisodePosition(ep.id);
+                    const resumeText = resumePos > 0 ? ` • Resume at ${formatTime(resumePos)}` : '';
+                    const played = isEpisodePlayed(ep.id);
+                    return `
+                        <div class="track-item ${played ? 'episode-played' : ''}" data-id="${ep.id}" style="cursor: pointer;">
+                            <img class="track-album-art" src="${ep.album_art || '/static/icon.svg'}" alt="Art" loading="lazy">
+                            <div class="track-info">
+                                <p class="track-name">${escapeHtml(ep.name)}</p>
+                                <p class="track-artist">${escapeHtml(ep.artists)}${resumeText}</p>
+                            </div>
+                            <div class="track-actions">
+                                <span class="track-duration">${ep.duration || ''}</span>
+                                <button class="episode-played-btn ${played ? 'played' : ''}" data-episode-id="${ep.id}" title="${played ? 'Mark as unplayed' : 'Mark as played'}">
+                                    ${played ? '✅' : '⬜'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        resultsContainer.appendChild(historySection);
+        
+        // Click handlers for history items
+        historySection.querySelectorAll('.track-item').forEach(el => {
+            el.addEventListener('click', (e) => {
+                if (e.target.closest('.episode-played-btn')) return;
+                const epId = el.dataset.id;
+                const episode = state.podcastHistory.find(ep => ep.id === epId);
+                if (episode) {
+                    playTrack(episode);
+                }
+            });
+        });
+        
+        // Played toggle handlers
+        historySection.querySelectorAll('.episode-played-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const epId = btn.dataset.episodeId;
+                const nowPlayed = toggleEpisodePlayed(epId);
+                btn.textContent = nowPlayed ? '✅' : '⬜';
+                btn.classList.toggle('played', nowPlayed);
+                btn.title = nowPlayed ? 'Mark as unplayed' : 'Mark as played';
+                btn.closest('.track-item').classList.toggle('episode-played', nowPlayed);
+                showToast(nowPlayed ? 'Marked as played' : 'Marked as unplayed');
+            });
+        });
+    }
+    
+    // Tag filter click handlers
+    resultsContainer.querySelectorAll('.podcast-tag-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            resultsContainer.querySelectorAll('.podcast-tag-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const tag = btn.dataset.tag;
+            const items = grid.querySelectorAll('.podcast-fav-item');
+            items.forEach(item => {
+                if (tag === 'all') {
+                    item.style.display = '';
+                } else {
+                    const itemTags = (item.dataset.tags || '').split(',');
+                    item.style.display = itemTags.includes(tag) ? '' : 'none';
+                }
+            });
+        });
+    });
+    
+    // Click handlers for podcast cards
+    grid.querySelectorAll('.podcast-fav-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+            // Handle unfavorite button
+            if (e.target.closest('.podcast-fav-btn')) {
+                e.stopPropagation();
+                const id = e.target.closest('.podcast-fav-btn').dataset.podcastId;
+                if (confirm('Remove this podcast from favorites?')) {
+                    removePodcastFavorite(id);
+                    renderMyPodcastsView();
+                }
+                return;
+            }
+            // Handle tag edit button
+            if (e.target.closest('.podcast-tag-edit-btn')) {
+                e.stopPropagation();
+                const podcastId = e.target.closest('.podcast-tag-edit-btn').dataset.podcastId;
+                openPodcastTagEditor(podcastId);
+                return;
+            }
+            // Open episode list
+            const podcastId = el.dataset.podcastId;
+            if (podcastId) openPodcastEpisodes(podcastId);
+        });
+    });
+} // end renderMyPodcastsView
+
+// ========== MY BOOKS PAGE ==========
+function renderMyBooksView() {
+    const resultsContainer = document.getElementById('results-container');
+    
+    // Header
+    let html = `
+        <div class="search-header">
+            <h2>📚 My Books</h2>
+            <div>You have ${state.audiobookFavorites.length} saved books</div>
+        </div>
+    `;
+
+    if (state.audiobookFavorites.length === 0) {
+        html += `
+            <div style="text-align: center; padding: 40px 20px;">
+                <p>No saved books yet</p>
+                <p style="font-size: 0.9em; opacity: 0.7;">Search for audiobooks and tap ❤️ to save them here</p>
+                <button onclick="document.getElementById('search-input').focus(); document.getElementById('search-input').placeholder='Search audiobooks...';" class="btn-secondary" style="margin-top: 12px; padding: 8px 20px;">🔍 Search Books</button>
+            </div>
+        `;
+        resultsContainer.innerHTML = html;
+        return;
+    }
+
+    // Grid
+    html += `<div class="dashboard-grid dashboard-grid-albums" id="my-books-grid">`;
+    
+    state.audiobookFavorites.forEach(book => {
+        const hasCachedTracks = book.cachedTracks && book.cachedTracks.length > 0;
+        const badgeText = hasCachedTracks ? '▶ Ready' : '⏳ Not cached';
+        const badgeStyle = hasCachedTracks 
+            ? 'background: rgba(29,185,84,0.85); color: #fff;' 
+            : 'background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.6);';
+        
+        // Check if there's a resume position for any track in this book
+        let resumeInfo = '';
+        if (hasCachedTracks) {
+            for (const t of book.cachedTracks) {
+                const pos = getEpisodePosition(t.id);
+                if (pos > 10) {
+                    const mins = Math.floor(pos / 60);
+                    const secs = Math.floor(pos % 60);
+                    resumeInfo = `<p class="dashboard-card-subtitle" style="color: var(--accent-color); font-size: 0.75em;">⏱ Resume Ch.${t.track_number} @ ${mins}:${String(secs).padStart(2,'0')}</p>`;
+                    break; // Show only the first chapter with a resume point
+                }
+            }
+        }
+        
+        html += `
+            <div class="dashboard-card album-card book-fav-item" data-id="${book.id}">
+                <button class="podcast-fav-btn favorited" title="Remove from My Books" data-book-id="${book.id}" style="position: absolute; top: 10px; right: 10px; z-index: 5;">❤️</button>
+                <span style="position: absolute; top: 10px; left: 10px; z-index: 5; padding: 2px 8px; border-radius: 4px; font-size: 0.7em; ${badgeStyle}">${badgeText}</span>
+                <img src="${book.artwork}" alt="${escapeHtml(book.name)}" loading="lazy">
+                <div class="dashboard-card-info">
+                    <p class="dashboard-card-title">${escapeHtml(book.name)}</p>
+                    <p class="dashboard-card-subtitle">${escapeHtml(book.artist)}</p>
+                    ${resumeInfo}
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    resultsContainer.innerHTML = html;
+    
+    // Click handlers
+    const grid = document.getElementById('my-books-grid');
+    grid.querySelectorAll('.book-fav-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+            // Unfavorite
+            if (e.target.closest('.podcast-fav-btn')) {
+                e.stopPropagation();
+                const id = e.target.closest('.podcast-fav-btn').dataset.bookId;
+                if (confirm('Remove this book from favorites?')) {
+                    removeAudiobookFavorite(id);
+                    renderMyBooksView();
+                }
+                return;
+            }
+            // Open book info modal
+            const bookId = el.dataset.id;
+            const book = state.audiobookFavorites.find(b => b.id === bookId);
+            if (book) {
+                openBookInfoModal(book);
+            } else if (bookId) {
+                openAudiobook(bookId);
+            }
+        });
+    });
+}
+window.renderMyBooksView = renderMyBooksView;
+
+// ========== BOOK INFO MODAL ==========
+function openBookInfoModal(book) {
+    const modal = document.getElementById('book-info-modal');
+    const overlay = modal.querySelector('.book-info-overlay');
+    const closeBtn = document.getElementById('book-info-close');
+    
+    // Populate header
+    document.getElementById('book-info-art').src = book.artwork || '/static/icon.svg';
+    document.getElementById('book-info-title').textContent = book.name;
+    document.getElementById('book-info-author').textContent = book.artist || 'Unknown Author';
+    
+    // Badges
+    const badgesEl = document.getElementById('book-info-badges');
+    let badgeHtml = '';
+    if (book.cachedTracks && book.cachedTracks.length > 0) {
+        badgeHtml += `<span class="book-info-badge">📖 ${book.cachedTracks.length} chapters</span>`;
+        badgeHtml += `<span class="book-info-badge" style="color: #1db954;">▶ Ready to play</span>`;
+    } else {
+        badgeHtml += `<span class="book-info-badge">⏳ Not yet downloaded</span>`;
+    }
+    badgesEl.innerHTML = badgeHtml;
+    
+    // Description
+    const descEl = document.getElementById('book-info-description');
+    descEl.textContent = book.description || 'No description available. Click "Goodreads Reviews" tab for book info.';
+    
+    // Reset tabs
+    modal.querySelectorAll('.book-info-tab').forEach(t => t.classList.remove('active'));
+    modal.querySelector('.book-info-tab[data-tab="description"]').classList.add('active');
+    document.getElementById('book-info-desc-tab').classList.add('active');
+    document.getElementById('book-info-reviews-tab').classList.remove('active');
+    
+    // Reset Goodreads section
+    document.getElementById('book-info-goodreads').innerHTML = `
+        <div class="book-info-loading">
+            <div class="spinner"></div>
+            <p>Fetching Goodreads data...</p>
+        </div>
+    `;
+    
+    // Tab switching
+    modal.querySelectorAll('.book-info-tab').forEach(tab => {
+        tab.onclick = () => {
+            modal.querySelectorAll('.book-info-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.tab;
+            document.getElementById('book-info-desc-tab').classList.toggle('active', target === 'description');
+            document.getElementById('book-info-reviews-tab').classList.toggle('active', target === 'reviews');
+            
+            // Lazy-load Goodreads data on first tab click
+            if (target === 'reviews' && !modal._goodreadsLoaded) {
+                modal._goodreadsLoaded = true;
+                fetchGoodreadsData(book.name, book.artist);
+            }
+        };
+    });
+    modal._goodreadsLoaded = false;
+    
+    // Play button
+    const playBtn = document.getElementById('book-info-play-btn');
+    // Check for resume position
+    let resumeText = '▶ Play';
+    if (book.cachedTracks && book.cachedTracks.length > 0) {
+        for (const t of book.cachedTracks) {
+            const pos = getEpisodePosition(t.id);
+            if (pos > 10) {
+                const mins = Math.floor(pos / 60);
+                const secs = Math.floor(pos % 60);
+                resumeText = `▶ Resume Ch.${t.track_number} @ ${mins}:${String(secs).padStart(2, '0')}`;
+                break;
+            }
+        }
+    }
+    playBtn.textContent = resumeText;
+    
+    playBtn.onclick = () => {
+        modal.classList.add('hidden');
+        if (book.cachedTracks && book.cachedTracks.length > 0) {
+            const albumData = {
+                id: `ab_cached_${book.id}`,
+                name: book.name,
+                artists: 'Audiobook',
+                image: book.artwork || '/static/icon.svg',
+                is_playlist: false
+            };
+            showDetailView(albumData, book.cachedTracks);
+        } else {
+            openAudiobook(book.id);
+        }
+    };
+    
+    // Chapters button
+    const chaptersBtn = document.getElementById('book-info-chapters-btn');
+    if (book.cachedTracks && book.cachedTracks.length > 0) {
+        chaptersBtn.style.display = '';
+        chaptersBtn.onclick = () => {
+            modal.classList.add('hidden');
+            const albumData = {
+                id: `ab_cached_${book.id}`,
+                name: book.name,
+                artists: 'Audiobook',
+                image: book.artwork || '/static/icon.svg',
+                is_playlist: false
+            };
+            showDetailView(albumData, book.cachedTracks);
+        };
+    } else {
+        chaptersBtn.style.display = 'none';
+    }
+    
+    // Close handlers
+    const closeModal = () => modal.classList.add('hidden');
+    closeBtn.onclick = closeModal;
+    overlay.onclick = closeModal;
+    
+    // Show modal
+    modal.classList.remove('hidden');
+}
+
+async function fetchGoodreadsData(title, author) {
+    const container = document.getElementById('book-info-goodreads');
+    const badgesEl = document.getElementById('book-info-badges');
+    
+    try {
+        const params = new URLSearchParams({ title });
+        if (author && author.toLowerCase() !== 'audiobookbay') params.set('author', author);
+        
+        const resp = await fetch(`/api/goodreads/book?${params}`);
+        const data = await resp.json();
+        
+        if (!data.found) {
+            container.innerHTML = `
+                <div class="book-info-no-reviews">
+                    <p>📚 No Goodreads data found for this book</p>
+                    <a href="https://www.goodreads.com/search?q=${encodeURIComponent(title)}" target="_blank" rel="noopener" class="book-info-gr-link" style="margin-top: 10px;">🔍 Search on Goodreads</a>
+                </div>
+            `;
+            return;
+        }
+        
+        // Update badges with Goodreads rating
+        if (data.rating) {
+            const starCount = Math.round(parseFloat(data.rating));
+            const stars = '★'.repeat(starCount) + '☆'.repeat(5 - starCount);
+            badgesEl.innerHTML += `<span class="book-info-badge rating">⭐ ${data.rating}</span>`;
+            if (data.rating_count) {
+                badgesEl.innerHTML += `<span class="book-info-badge">${data.rating_count}</span>`;
+            }
+        }
+        
+        // Add genres
+        if (data.genres && data.genres.length > 0) {
+            data.genres.slice(0, 4).forEach(g => {
+                badgesEl.innerHTML += `<span class="book-info-badge genres">${g}</span>`;
+            });
+        }
+        
+        // Update description if Goodreads has a better one
+        const descEl = document.getElementById('book-info-description');
+        if (data.description && data.description.length > (descEl.textContent || '').length) {
+            descEl.textContent = data.description;
+        }
+        
+        // Build reviews section
+        let html = '';
+        
+        // Rating header
+        if (data.rating) {
+            const starCount = Math.round(parseFloat(data.rating));
+            const starsDisplay = '★'.repeat(starCount) + '☆'.repeat(5 - starCount);
+            html += `
+                <div class="book-info-gr-header">
+                    <div class="book-info-gr-rating">
+                        <span class="book-info-gr-stars">${starsDisplay}</span>
+                        <span class="book-info-gr-score">${data.rating}</span>
+                        <span class="book-info-gr-count">${data.rating_count || ''} · ${data.review_count || ''}</span>
+                    </div>
+                    <a href="${data.url}" target="_blank" rel="noopener" class="book-info-gr-link">📖 Goodreads</a>
+                </div>
+            `;
+        }
+        
+        // Reviews
+        if (data.reviews && data.reviews.length > 0) {
+            data.reviews.forEach(review => {
+                const reviewStars = review.rating ? '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating) : '';
+                html += `
+                    <div class="book-info-review">
+                        <div class="book-info-review-header">
+                            <span class="book-info-reviewer">${escapeHtml(review.reviewer || 'Anonymous')}</span>
+                            ${reviewStars ? `<span class="book-info-review-stars">${reviewStars}</span>` : ''}
+                        </div>
+                        ${review.date ? `<div class="book-info-review-date">${escapeHtml(review.date)}</div>` : ''}
+                        <div class="book-info-review-text">${escapeHtml(review.text || 'No text')}</div>
+                    </div>
+                `;
+            });
+        } else {
+            html += `<div class="book-info-no-reviews"><p>No reviews available</p></div>`;
+        }
+        
+        // View all on Goodreads link
+        if (data.url) {
+            html += `
+                <div style="text-align: center; margin-top: 16px;">
+                    <a href="${data.url}" target="_blank" rel="noopener" class="book-info-gr-link">📖 View all reviews on Goodreads</a>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+        
+    } catch (err) {
+        console.error('Goodreads fetch error:', err);
+        container.innerHTML = `
+            <div class="book-info-no-reviews">
+                <p>⚠️ Failed to load Goodreads data</p>
+                <a href="https://www.goodreads.com/search?q=${encodeURIComponent(title)}" target="_blank" rel="noopener" class="book-info-gr-link" style="margin-top: 10px;">🔍 Search on Goodreads manually</a>
+            </div>
+        `;
+    }
+}
+
+// Tag editor modal
+function openPodcastTagEditor(podcastId) {
+    const podcast = state.podcastFavorites.find(p => p.id === podcastId);
+    if (!podcast) return;
+    
+    const currentTags = getPodcastTags(podcastId);
+    const allTags = getAllUsedTags();
+    
+    const tagInput = prompt(
+        `Edit tags for "${podcast.name}"\n\nCurrent tags: ${currentTags.join(', ') || '(none)'}\n\nEnter tags separated by commas (e.g. Tech, Science, Comedy):`,
+        currentTags.join(', ')
+    );
+    
+    if (tagInput !== null) {
+        const newTags = tagInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+        setPodcastTags(podcastId, newTags);
+        showToast(`Tags updated for "${podcast.name}"`);
+        renderMyPodcastsView();
+    }
 }
 
 function showPlaylistDetail(playlist) {
@@ -832,11 +1565,37 @@ function renderResults(results, type, append = false) {
         resultsContainer.appendChild(grid);
     }
     
-    // For 'podcast' we reuse album card style
+    // For 'podcast' we reuse album card style + add favorite heart overlay
     if (type === 'podcast') {
-        // For 'podcast' we reuse album card style
         results.forEach(item => {
-            grid.innerHTML += renderAlbumCard(item);
+            const isFav = isPodcastFavorited(item.id);
+            const cardHtml = renderAlbumCard(item);
+            // Wrap with a container that includes the heart button
+            grid.innerHTML += `<div class="podcast-search-card-wrapper" style="position:relative;">
+                ${cardHtml}
+                <button class="podcast-fav-btn ${isFav ? 'favorited' : ''}" data-podcast-id="${item.id}" title="${isFav ? 'Remove from My Podcasts' : 'Save to My Podcasts'}">${isFav ? '❤️' : '🤍'}</button>
+            </div>`;
+        });
+        // Wire up favorite buttons on search cards
+        grid.querySelectorAll('.podcast-search-card-wrapper .podcast-fav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const podcastId = btn.dataset.podcastId;
+                const podcast = results.find(r => r.id === podcastId);
+                if (podcast) {
+                    const nowFav = togglePodcastFavorite(podcast);
+                    btn.textContent = nowFav ? '❤️' : '🤍';
+                    btn.classList.toggle('favorited', nowFav);
+                    btn.title = nowFav ? 'Remove from My Podcasts' : 'Save to My Podcasts';
+                }
+            });
+        });
+        // Wire up card clicks (need to go through wrapper)
+        grid.querySelectorAll('.podcast-search-card-wrapper .album-card').forEach(el => {
+            el.addEventListener('click', () => {
+                console.log('Podcast card clicked, ID:', el.dataset.id);
+                openPodcastEpisodes(el.dataset.id);
+            });
         });
     } else if (type === 'track') {
         results.forEach(track => {
@@ -845,6 +1604,17 @@ function renderResults(results, type, append = false) {
     } else if (type === 'album') {
         results.forEach(album => {
             grid.innerHTML += renderAlbumCard(album);
+        });
+    } else if (type === 'audiobook') {
+        results.forEach(book => {
+            // Map audiobook properties to album card format
+            grid.innerHTML += renderAlbumCard({
+                id: book.id,
+                name: book.title,
+                artists: 'AudiobookBay',
+                album_art: book.cover_image,
+                total_tracks: 'Audiobook'
+            });
         });
     } else if (type === 'artist') {
         results.forEach(artist => {
@@ -886,22 +1656,22 @@ function renderResults(results, type, append = false) {
         if (state.djMode) {
             fetchAudioFeaturesForTracks(results);
         }
-    } else if (type === 'album') {
-        // Album cards - open album modal
+    } else if (type === 'album' || type === 'audiobook') {
+        // Album/Audiobook cards - open modal
         grid.querySelectorAll('.album-card').forEach(el => {
             el.addEventListener('click', () => {
-                console.log('Album card clicked, ID:', el.dataset.id);
-                openAlbum(el.dataset.id);
+                const id = el.dataset.id;
+                if (type === 'audiobook') {
+                    console.log('Audiobook card clicked, ID:', id);
+                    openAudiobook(id);
+                } else {
+                    console.log('Album card clicked, ID:', id);
+                    openAlbum(id);
+                }
             });
         });
     } else if (type === 'podcast') {
-        // Podcast cards - open podcast episodes (not album modal)
-        grid.querySelectorAll('.album-card').forEach(el => {
-            el.addEventListener('click', () => {
-                console.log('Podcast card clicked, ID:', el.dataset.id);
-                openPodcastEpisodes(el.dataset.id);
-            });
-        });
+        // Podcast click handlers already wired above in the render block
     } else if (type === 'artist') {
         grid.querySelectorAll('.artist-item').forEach((el, i) => {
             el.addEventListener('click', () => openArtist(results[i].id));
@@ -1291,7 +2061,7 @@ downloadConfirmBtn.addEventListener('click', async () => {
         
 
 function renderTrackCard(track) {
-    const year = track.release_date ? track.release_date.slice(0, 4) : '';
+    const year = track.release_date ? String(track.release_date).slice(0, 4) : '';
     const isStarred = isInLibrary(track.id);
     
     // Check for HiRes quality
@@ -1394,6 +2164,64 @@ async function openPodcastEpisodes(podcastId) {
         
         // Use detail view for podcasts (allows clicking episodes for info modal)
         showDetailView(podcast, podcast.tracks || []);
+        
+        // After detail view renders, inject podcast-specific controls
+        setTimeout(() => {
+            // Add favorite toggle button to detail header
+            const detailActions = document.querySelector('.detail-actions');
+            if (detailActions && !detailActions.querySelector('.podcast-detail-fav-btn')) {
+                const isFav = isPodcastFavorited(podcastId);
+                const favBtn = document.createElement('button');
+                favBtn.className = `detail-add-library-btn podcast-detail-fav-btn ${isFav ? 'saved' : ''}`;
+                favBtn.innerHTML = isFav ? '❤️ In My Podcasts' : '🤍 Save to My Podcasts';
+                favBtn.addEventListener('click', () => {
+                    const nowFav = togglePodcastFavorite(podcast);
+                    favBtn.innerHTML = nowFav ? '❤️ In My Podcasts' : '🤍 Save to My Podcasts';
+                    favBtn.classList.toggle('saved', nowFav);
+                });
+                detailActions.appendChild(favBtn);
+            }
+            
+            // Add played/download buttons to each episode row
+            const trackItems = document.querySelectorAll('#detail-tracks .track-item');
+            const tracks = podcast.tracks || [];
+            trackItems.forEach((el, i) => {
+                const track = tracks[i];
+                if (!track || track.source !== 'podcast') return;
+                
+                const actionsDiv = el.querySelector('.track-actions');
+                if (!actionsDiv || actionsDiv.querySelector('.episode-played-btn')) return;
+                
+                // Mark as played button
+                const played = isEpisodePlayed(track.id);
+                const playedBtn = document.createElement('button');
+                playedBtn.className = `episode-played-btn ${played ? 'played' : ''}`;
+                playedBtn.textContent = played ? '✅' : '⬜';
+                playedBtn.title = played ? 'Mark as unplayed' : 'Mark as played';
+                playedBtn.dataset.episodeId = track.id;
+                playedBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const nowPlayed = toggleEpisodePlayed(track.id);
+                    playedBtn.textContent = nowPlayed ? '✅' : '⬜';
+                    playedBtn.classList.toggle('played', nowPlayed);
+                    playedBtn.title = nowPlayed ? 'Mark as unplayed' : 'Mark as played';
+                    el.classList.toggle('episode-played', nowPlayed);
+                });
+                actionsDiv.insertBefore(playedBtn, actionsDiv.firstChild);
+                
+                // Add played visual
+                if (played) el.classList.add('episode-played');
+                
+                // Resume position indicator
+                const resumePos = getEpisodePosition(track.id);
+                if (resumePos > 10) {
+                    const infoDiv = el.querySelector('.track-artist');
+                    if (infoDiv && !infoDiv.textContent.includes('Resume')) {
+                        infoDiv.textContent += ` • Resume at ${formatTime(resumePos)}`;
+                    }
+                }
+            });
+        }, 100);
     } catch (error) {
         console.error('Failed to load podcast:', error);
         showError('Failed to load podcast');
@@ -1880,9 +2708,7 @@ function showDetailView(item, tracks) {
                 ${renderDJBadgeForTrack(t)}
                 <span class="track-duration">${t.duration}</span>
                 <button class="star-btn ${isStarred ? 'starred' : ''}" data-track-id="${t.id}" title="${isStarred ? 'Remove from Library' : 'Add to Library'}">${isStarred ? '★' : '☆'}</button>
-                ${t.source === 'podcast' ? `
-                <button class="info-btn" title="Episode Details" onclick="event.stopPropagation(); showPodcastModal('${encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27")}')">ℹ️</button>
-                ` : ''}
+
                 <button class="download-btn" title="Download" onclick="event.stopPropagation(); openDownloadModal('${encodeURIComponent(JSON.stringify(t)).replace(/'/g, "%27")}')">
                     ⬇
                 </button>
@@ -1909,6 +2735,21 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(console.error);
 }
 
+// Save podcast/audiobook resume position before tab close or refresh
+window.addEventListener('beforeunload', () => {
+    try {
+        const currentTrack = state.queue && state.queue[state.currentIndex];
+        if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
+            const player = document.getElementById('audio-player');
+            const player2 = document.getElementById('audio-player-2');
+            const activeP = (player && !player.paused) ? player : (player2 && !player2.paused) ? player2 : player;
+            if (activeP && activeP.currentTime > 5) {
+                saveEpisodePosition(currentTrack.id, activeP.currentTime);
+            }
+        }
+    } catch (e) { /* ignore errors during unload */ }
+});
+
 // Initial state
 showEmptyState();
 
@@ -1925,6 +2766,20 @@ function playTrack(track) {
         state.currentIndex = state.queue.length - 1;
     } else {
         state.currentIndex = existingIndex;
+    }
+    
+    // Podcast / Audiobook: add to history and check for resume position
+    if (track.source === 'podcast' || track.source === 'audiobook') {
+        addToPodcastHistory(track);
+        const savedPos = getEpisodePosition(track.id);
+        if (savedPos > 10) {
+            // Show a toast with resume option
+            const resumeMin = Math.floor(savedPos / 60);
+            const resumeSec = savedPos % 60;
+            showToast(`▶️ Resuming from ${resumeMin}:${String(resumeSec).padStart(2, '0')}`);
+            // We'll seek after the track loads
+            track._resumeAt = savedPos;
+        }
     }
     
     updateQueueUI();
@@ -2196,6 +3051,21 @@ async function loadTrack(track) {
     state.scrobbledCurrent = false; // Reset scrobble status
     playerBar.classList.remove('hidden');
     
+    // Podcast/Audiobook: auto-check resume position if not already set
+    // This ensures resume works regardless of which code path called loadTrack
+    if (track.source === 'podcast' || track.source === 'audiobook') {
+        if (!track._resumeAt) {
+            const savedPos = getEpisodePosition(track.id);
+            if (savedPos > 10) {
+                const resumeMin = Math.floor(savedPos / 60);
+                const resumeSec = Math.floor(savedPos % 60);
+                showToast(`▶️ Resuming from ${resumeMin}:${String(resumeSec).padStart(2, '0')}`);
+                track._resumeAt = savedPos;
+            }
+        }
+        addToPodcastHistory(track);
+    }
+    
     // Reset preload and transition state on direct track load
     preloadedTrackId = null;
     preloadedPlayer = null;
@@ -2245,24 +3115,41 @@ async function loadTrack(track) {
     
     // Play
     if (track.is_local && track.src) {
-        player.src = track.src;
+        let baseSrc = track.src;
+        if (track._resumeAt && track._resumeAt > 10) {
+            baseSrc += `#t=${track._resumeAt}`;
+            delete track._resumeAt;
+        }
+        player.src = baseSrc;
     } else {
         const hiresParam = state.hiResMode ? '&hires=true' : '&hires=false';
         const qualityParam = state.hiResMode ? `&hires_quality=${state.hiResQuality}` : '';
-        player.src = `/api/stream/${track.isrc || track.id}?q=${encodeURIComponent(track.name + ' ' + track.artists)}${hiresParam}${qualityParam}`;
+        let targetSrc = `/api/stream/${track.isrc || track.id}?q=${encodeURIComponent(track.name + ' ' + track.artists)}${hiresParam}${qualityParam}`;
+        
+        if (track._resumeAt && track._resumeAt > 10) {
+            targetSrc += `#t=${track._resumeAt}`;
+            delete track._resumeAt;
+        }
+        player.src = targetSrc;
     }
     
     try {
+        state.lastSavedPositionTime = 0; // Reset tracking timestamp
         player.load();
         
         await new Promise((resolve, reject) => {
             const cleanup = () => {
                 player.oncanplay = null;
                 player.onerror = null;
+                player.onloadedmetadata = null;
                 if (loadTimeoutId) {
                     clearTimeout(loadTimeoutId);
                     loadTimeoutId = null;
                 }
+            };
+            
+            player.onloadedmetadata = () => {
+                // Metadata loaded
             };
             
             // Use canplay instead of canplaythrough for faster start
@@ -2274,11 +3161,11 @@ async function loadTrack(track) {
                 cleanup();
                 reject(new Error('Failed to load audio'));
             };
-            // Reduced timeout from 120s to 20s — if it hasn't started by then, skip
+            // Increased timeout to 35s to allow for Premiumize proxies to restart range requests
             loadTimeoutId = setTimeout(() => {
                 cleanup();
                 reject(new Error('Timeout loading audio'));
-            }, 20000);
+            }, 35000);
         });
         
         // Success — reset consecutive failure counter
@@ -2399,8 +3286,8 @@ function playNext() {
     
     const currentTrack = state.queue[state.currentIndex];
     const player = getActivePlayer();
-    // Podcast: seek +15s instead of next track
-    if (currentTrack && currentTrack.source === 'podcast') {
+    // Podcast/Audiobook: seek +15s instead of next track
+    if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
         player.currentTime = Math.min(player.duration || 0, player.currentTime + 15);
         return;
     }
@@ -2448,8 +3335,8 @@ function playNext() {
 function playPrevious() {
     const currentTrack = state.queue[state.currentIndex];
     const player = getActivePlayer();
-    // Podcast: seek -15s instead of prev track
-    if (currentTrack && currentTrack.source === 'podcast') {
+    // Podcast/Audiobook: seek -15s instead of prev track
+    if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
         player.currentTime = Math.max(0, player.currentTime - 15);
         return;
     }
@@ -2476,6 +3363,16 @@ function handlePause(e) {
         state.isPlaying = false;
         updatePlayButton();
         if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+        
+        // Immediately save resume position for podcasts/audiobooks on pause
+        const currentTrack = state.queue[state.currentIndex];
+        const player = getActivePlayer();
+        if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
+            if (player.currentTime > 5) {
+                saveEpisodePosition(currentTrack.id, player.currentTime);
+                console.log(`Saved resume position on pause: ${currentTrack.name} @ ${Math.floor(player.currentTime)}s`);
+            }
+        }
     }
 }
 
@@ -2505,6 +3402,14 @@ function handleEnded(e) {
     }
     // Only respond if the active player fired this event
     if (e.target !== getActivePlayer()) return;
+    
+    // Podcast/Audiobook: auto-mark as played and clear resume position
+    const currentTrack = state.queue[state.currentIndex];
+    if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
+        markEpisodePlayed(currentTrack.id);
+        clearEpisodePosition(currentTrack.id);
+    }
+    
     playNext();
 }
 
@@ -2601,6 +3506,15 @@ function handleTimeUpdate() {
         if (!state.scrobbledCurrent && state.queue[state.currentIndex]) {
             if (player.currentTime > 240 || player.currentTime > player.duration / 2) {
                 submitScrobble(state.queue[state.currentIndex]);
+            }
+        }
+        
+        // Podcast/Audiobook: save resume position every 10 seconds
+        const currentTrack = state.queue[state.currentIndex];
+        if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
+            if (player.currentTime > 5 && player.currentTime > state.lastSavedPositionTime + 10) {
+                saveEpisodePosition(currentTrack.id, player.currentTime);
+                state.lastSavedPositionTime = player.currentTime;
             }
         }
         
@@ -3053,6 +3967,18 @@ function playHistoryTrack(trackId) {
     if (track) {
         state.queue = [track];
         state.currentIndex = 0;
+        
+        // Podcast / Audiobook: check for resume position
+        if (track.source === 'podcast' || track.source === 'audiobook') {
+            const savedPos = getEpisodePosition(track.id);
+            if (savedPos > 10) {
+                const resumeMin = Math.floor(savedPos / 60);
+                const resumeSec = savedPos % 60;
+                showToast(`▶️ Resuming from ${resumeMin}:${String(resumeSec).padStart(2, '0')}`);
+                track._resumeAt = savedPos;
+            }
+        }
+        
         loadTrack(track);
     }
 }
@@ -4139,6 +5065,12 @@ async function uploadToDrive(syncType = 'all') {
             syncData.playlists = state.playlists;
             syncData.library = state.library;
             syncData.history = state.history;
+            syncData.podcastFavorites = state.podcastFavorites;
+            syncData.audiobookFavorites = state.audiobookFavorites;
+            syncData.podcastPlayedEpisodes = state.podcastPlayedEpisodes;
+            syncData.podcastResumePositions = state.podcastResumePositions;
+            syncData.podcastHistory = state.podcastHistory;
+            syncData.podcastTags = state.podcastTags;
         }
         
         if (syncType === 'all' || syncType === 'queue') {
@@ -4245,6 +5177,34 @@ async function downloadFromDrive(syncType = 'all') {
                 if (remoteHistory.length > 0) {
                     state.history = remoteHistory;
                     saveHistory();
+                }
+                
+                // Restore podcast data
+                if (syncData.podcastFavorites) {
+                    state.podcastFavorites = syncData.podcastFavorites;
+                    savePodcastFavorites();
+                }
+                
+                if (syncData.audiobookFavorites) {
+                    state.audiobookFavorites = syncData.audiobookFavorites;
+                    saveAudiobookFavorites();
+                }
+                
+                if (syncData.podcastPlayedEpisodes) {
+                    state.podcastPlayedEpisodes = syncData.podcastPlayedEpisodes;
+                    savePodcastPlayed();
+                }
+                if (syncData.podcastResumePositions) {
+                    state.podcastResumePositions = syncData.podcastResumePositions;
+                    savePodcastResumePositions();
+                }
+                if (syncData.podcastHistory) {
+                    state.podcastHistory = syncData.podcastHistory;
+                    savePodcastHistory();
+                }
+                if (syncData.podcastTags) {
+                    state.podcastTags = syncData.podcastTags;
+                    savePodcastTags();
                 }
                 
                 restoredCount = remotePlaylists.length;
@@ -7663,3 +8623,282 @@ async function handlePlaylistImport(file) {
     }
 }
 
+// ========== AUDIOBOOK LOGIC ==========
+
+const audiobookModal = $('#audiobook-modal');
+const audiobookCloseBtn = $('#audiobook-modal-close');
+let currentAudiobookDetails = null;
+let audiobookPollInterval = null;
+
+if (audiobookCloseBtn) {
+    audiobookCloseBtn.addEventListener('click', () => {
+        audiobookModal.classList.add('hidden');
+        if (audiobookPollInterval) {
+            clearInterval(audiobookPollInterval);
+            audiobookPollInterval = null;
+        }
+    });
+}
+
+async function openAudiobook(id) {
+    showLoading('Fetching audiobook details...');
+    try {
+        const response = await fetch(`/api/audiobooks/details?id=${encodeURIComponent(id)}`);
+        if (!response.ok) throw new Error('Failed to fetch audiobook details');
+        const details = await response.json();
+        hideLoading();
+        
+        currentAudiobookDetails = details;
+        
+        // Populate Modal
+        $('#audiobook-modal-title').textContent = details.title;
+        $('#audiobook-modal-art').src = details.cover_image || '/static/icon.svg';
+        $('#audiobook-modal-description').textContent = details.description || 'No description available.';
+        
+        // Reset UI
+        const btn = $('#audiobook-download-btn');
+        btn.textContent = '☁️ Download to Premiumize';
+        btn.disabled = false;
+        
+        let favBtn = $('#audiobook-fav-btn');
+        if (!favBtn) {
+            favBtn = document.createElement('button');
+            favBtn.id = 'audiobook-fav-btn';
+            btn.parentNode.insertBefore(favBtn, btn.nextSibling);
+            favBtn.style.marginTop = '10px';
+            
+            favBtn.addEventListener('click', () => {
+                if (!currentAudiobookDetails) return;
+                const bookInfo = {
+                    id: id,
+                    name: currentAudiobookDetails.title,
+                    artist: 'AudiobookBay',
+                    artwork: currentAudiobookDetails.cover_image || '/static/icon.svg'
+                };
+                const nowFav = toggleAudiobookFavorite(bookInfo);
+                favBtn.textContent = nowFav ? '❤️ In My Books' : '🤍 Save to My Books';
+                favBtn.className = nowFav ? 'btn-secondary saved' : 'btn-secondary';
+            });
+        }
+        
+        const isFav = isAudiobookFavorited(id);
+        favBtn.textContent = isFav ? '❤️ In My Books' : '🤍 Save to My Books';
+        favBtn.className = isFav ? 'btn-secondary saved' : 'btn-secondary';
+        btn.disabled = false;
+        $('#audiobook-progress-container').classList.add('hidden');
+        $('#audiobook-progress-status').textContent = 'Starting...';
+        $('#audiobook-progress-percent').textContent = '0%';
+        $('#audiobook-progress-fill').style.width = '0%';
+        
+        // Check if it's already in Premiumize by searching the title (optimistic check)
+        checkExistingAudiobook(details.title);
+        
+        btn.onclick = () => startAudiobookDownload(details.magnet_link);
+        
+        audiobookModal.classList.remove('hidden');
+    } catch (e) {
+        hideLoading();
+        console.error(e);
+        showError(e.message);
+    }
+}
+
+async function checkExistingAudiobook(title) {
+    try {
+        // Search Premiumize for the exact title 
+        // Torrents often have weird names, so we might not find it, which is fine
+        const response = await fetch(`/api/premiumize/search?q=${encodeURIComponent(title.split(' ')[0])}`); // Use first word to be safe
+        const data = await response.json();
+        
+        if (data && data.results && data.results.length > 0) {
+            // Find a folder match
+            const folder = data.results.find(i => i.type === 'folder');
+            if (folder) {
+                const btn = $('#audiobook-download-btn');
+                btn.textContent = '▶ Play from Premiumize Cache';
+                btn.onclick = () => loadAudiobookFolder(folder.id, currentAudiobookDetails);
+                showToast('Found in Premiumize cache!');
+            }
+        }
+    } catch (e) {
+        console.error("Cache check failed", e);
+    }
+}
+
+async function startAudiobookDownload(magnetLink) {
+    const btn = $('#audiobook-download-btn');
+    btn.disabled = true;
+    btn.textContent = 'Starting Transfer...';
+    $('#audiobook-progress-container').classList.remove('hidden');
+    
+    try {
+        const response = await fetch('/api/premiumize/transfer', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ magnet_link: magnetLink })
+        });
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            pollAudiobookTransfer(data.id || data.transfer_id); // The id depends on the exact API response
+        } else {
+            throw new Error(data.message || 'Failed to start transfer');
+        }
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '☁️ Download to Premiumize';
+        showError(e.message);
+    }
+}
+
+async function pollAudiobookTransfer(transferId) {
+    if (audiobookPollInterval) clearInterval(audiobookPollInterval);
+    
+    // Fallback if transferId is missing from create transfer response
+    const fetchStatus = async () => {
+        try {
+            const res = await fetch(`/api/premiumize/transfer/${transferId || ''}`);
+            const data = await res.json();
+            
+            let transfer = null;
+            if (transferId && data.transfer && !Array.isArray(data.transfer)) {
+                transfer = data.transfer;
+            } else if (data.transfer && Array.isArray(data.transfer)) {
+                // Find highest progress if we don't know the ID
+                transfer = data.transfer.filter(t => t.name && (t.name.includes(currentAudiobookDetails.title.split(' ')[0]) || t.message !== 'finished')).pop();
+            }
+            
+            if (!transfer) {
+                // If transfer disappeared, it might be finished
+                clearInterval(audiobookPollInterval);
+                audiobookPollInterval = null;
+                // Now try to find the folder it created
+                autoFindFinishedFolder();
+                return;
+            }
+            
+            const progress = (transfer.progress || 0) * 100;
+            const statusStr = transfer.message || transfer.status || 'Downloading';
+            
+            $('#audiobook-progress-percent').textContent = `${progress.toFixed(1)}%`;
+            $('#audiobook-progress-fill').style.width = `${progress}%`;
+            $('#audiobook-progress-status').textContent = statusStr;
+            
+            if (transfer.status === 'finished' || progress >= 100) {
+                clearInterval(audiobookPollInterval);
+                audiobookPollInterval = null;
+                $('#audiobook-progress-status').textContent = 'Complete! Loading tracks...';
+                $('#audiobook-download-btn').textContent = '▶ Play';
+                
+                // If we get the folder ID directly from the transfer object
+                if (transfer.folder_id) {
+                    loadAudiobookFolder(transfer.folder_id, currentAudiobookDetails);
+                } else {
+                    autoFindFinishedFolder();
+                }
+            }
+            
+        } catch (e) {
+            console.error('Polling error', e);
+        }
+    };
+    
+    audiobookPollInterval = setInterval(fetchStatus, 3000);
+    fetchStatus(); // immediate run
+}
+
+async function autoFindFinishedFolder() {
+    try {
+        const response = await fetch(`/api/premiumize/search?q=${encodeURIComponent(currentAudiobookDetails.title.split(' ')[0])}`);
+        const data = await response.json();
+        const folder = data.results.find(i => i.type === 'folder');
+        if (folder) {
+            loadAudiobookFolder(folder.id, currentAudiobookDetails);
+        } else {
+            $('#audiobook-progress-status').textContent = 'Completed, but could not locate folder. Check your Premiumize web interface.';
+            $('#audiobook-progress-percent').textContent = '';
+            $('#audiobook-download-btn').disabled = false;
+            $('#audiobook-download-btn').textContent = 'Open Premiumize';
+            $('#audiobook-download-btn').onclick = () => window.open('https://www.premiumize.me/files', '_blank');
+        }
+    } catch (e) {
+        console.error(e);
+        showError('Could not locate downloaded folder');
+    }
+}
+
+async function loadAudiobookFolder(folderId, audiobookDetails) {
+    showLoading('Loading audiobook tracks from Premiumize...');
+    try {
+        const response = await fetch(`/api/premiumize/folder/${folderId}`);
+        const data = await response.json();
+        hideLoading();
+        
+        let audioFiles = data.audio_files || [];
+        
+        // If empty, maybe it's nested in a subfolder. Let's recursively check (max 1 deep for simplicity)
+        if (audioFiles.length === 0 && data.folders && data.folders.length > 0) {
+            const subFolderId = data.folders[0].id;
+            const subRes = await fetch(`/api/premiumize/folder/${subFolderId}`);
+            const subData = await subRes.json();
+            audioFiles = subData.audio_files || [];
+        }
+        
+        if (audioFiles.length === 0) {
+            showError('No audio files found in the downloaded folder.');
+            return;
+        }
+        
+        // Close modal and map tracks for showDetailView
+        audiobookModal.classList.add('hidden');
+        
+        const mappedTracks = audioFiles.map((file, index) => {
+            // Use stream_link if available, fallback to directlink for actual media access
+            const streamUrl = file.stream_link || file.directlink || file.link;
+            // Use a STABLE ID based on filename + audiobook title (stream URLs expire and change)
+            const stableId = `ab_${audiobookDetails.title}_${file.name}`.replace(/[^a-zA-Z0-9_]/g, '_');
+            return {
+                id: stableId, 
+                isrc: `LINK:${btoa(streamUrl).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}`, 
+                name: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                artists: audiobookDetails.title,
+            album: audiobookDetails.title,
+            album_art: audiobookDetails.cover_image || '/static/icon.svg',
+            duration: '0:00', // We don't have duration upfront
+            source: 'audiobook', // Mark as audiobook so it uses the podcast resume logic!
+            track_number: index + 1
+        };
+    });
+        
+        const albumData = {
+            id: `ab_${folderId}`,
+            name: audiobookDetails.title,
+            artists: 'Audiobook',
+            image: audiobookDetails.cover_image || '/static/icon.svg',
+            is_playlist: false
+        };
+        
+        showDetailView(albumData, mappedTracks);
+        
+        // Cache the mapped tracks into the audiobookFavorites entry
+        // so subsequent plays from My Books don't need to re-fetch from Premiumize
+        const favIdx = state.audiobookFavorites.findIndex(b => 
+            b.name === audiobookDetails.title || b.id === audiobookDetails.id
+        );
+        if (favIdx !== -1) {
+            state.audiobookFavorites[favIdx].cachedTracks = mappedTracks;
+            state.audiobookFavorites[favIdx].cachedAt = Date.now();
+            // Cache the description from AudiobookBay for the book info modal
+            if (audiobookDetails.description) {
+                state.audiobookFavorites[favIdx].description = audiobookDetails.description;
+            }
+            saveAudiobookFavorites();
+            console.log('Cached audiobook tracks for:', audiobookDetails.title);
+        }
+        
+    } catch (e) {
+        hideLoading();
+        console.error(e);
+        showError('Failed to load audiobook folder');
+    }
+}

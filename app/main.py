@@ -34,6 +34,8 @@ from app.listenbrainz_service import listenbrainz_service
 from app.jamendo_service import jamendo_service
 from app.genius_service import genius_service
 from app.concert_service import concert_service
+from app.audiobookbay_service import search_audiobooks, get_audiobook_details
+from app.premiumize_service import create_transfer, check_transfer_status, list_folder_contents, search_my_files
 
 from app.cache import cleanup_cache, periodic_cleanup, is_cached, get_cache_path
 
@@ -159,6 +161,11 @@ async def search(
         if type == "podcast":
             results = await podcast_service.search_podcasts(q)
             return {"results": results, "query": q, "type": "podcast", "source": "podcast", "offset": offset}
+            
+        # Audiobook Search
+        if type == "audiobook":
+            results = await search_audiobooks(q)
+            return {"results": results, "query": q, "type": "audiobook", "source": "audiobookbay", "offset": offset}
         
         # YouTube Music Search
         if type == "ytmusic":
@@ -473,11 +480,13 @@ async def stream_audio(
             from urllib.parse import urlparse
             try:
                 encoded_url = isrc.replace("LINK:", "")
+                # Add strict URL-safe base64 padding
+                encoded_url += "=" * ((4 - len(encoded_url) % 4) % 4)
                 original_url = base64.urlsafe_b64decode(encoded_url).decode()
                 
                 # Check for direct file extension first (fast path)
                 parsed = urlparse(original_url)
-                audio_exts = ('.mp3', '.m4a', '.ogg', '.wav', '.aac', '.opus', '.flac')
+                audio_exts = ('.mp3', '.m4a', '.ogg', '.wav', '.aac', '.opus', '.flac', '.m4b', '.mp4')
                 if any(parsed.path.lower().endswith(ext) for ext in audio_exts):
                      target_stream_url = original_url
                 else:
@@ -1368,6 +1377,80 @@ async def get_concerts_for_artists(
         return {"events": events, "artists": artist_list, "cities": city_list}
     except Exception as e:
         logger.error(f"Concerts for artists error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ========== GOODREADS ENDPOINTS ==========
+
+@app.get("/api/goodreads/book")
+async def get_goodreads_book_info(
+    title: str = Query(..., description="Book title"),
+    author: str = Query("", description="Book author (optional)")
+):
+    """Search Goodreads for a book and return rating, reviews, and description."""
+    try:
+        from app.goodreads_service import search_book
+        result = await search_book(title, author)
+        if not result:
+            return {"found": False, "message": "No Goodreads match found"}
+        return {"found": True, **result}
+    except Exception as e:
+        logger.error(f"Goodreads lookup error: {e}")
+        return {"found": False, "message": str(e)}
+
+# ========== AUDIOBOOKS & PREMIUMIZE ENDPOINTS ==========
+
+@app.get("/api/audiobooks/details")
+async def get_audiobook_details_endpoint(id: str = Query(..., description="Audiobook slug")):
+    """Get details and magnet link for an audiobook from AudiobookBay."""
+    try:
+        details = await get_audiobook_details(id)
+        return details
+    except Exception as e:
+        logger.error(f"Audiobook details error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/premiumize/transfer")
+async def start_premiumize_transfer(request: Request):
+    """Start a Premiumize transfer using a magnet link."""
+    try:
+        data = await request.json()
+        magnet_link = data.get("magnet_link")
+        if not magnet_link:
+            raise HTTPException(status_code=400, detail="magnet_link is required")
+        result = await create_transfer(magnet_link)
+        return result
+    except Exception as e:
+        logger.error(f"Premiumize transfer error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/premiumize/transfer/{transfer_id}")
+async def get_premiumize_transfer_status(transfer_id: str):
+    """Check status of a specific Premiumize transfer."""
+    try:
+        status = await check_transfer_status(transfer_id)
+        return {"transfer": status}
+    except Exception as e:
+        logger.error(f"Premiumize status error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/premiumize/folder/{folder_id}")
+async def get_premiumize_folder_contents(folder_id: str):
+    """List audio files in a Premiumize folder."""
+    try:
+        contents = await list_folder_contents(folder_id)
+        return contents
+    except Exception as e:
+        logger.error(f"Premiumize folder error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/premiumize/search")
+async def search_premiumize_files(q: str = Query(..., description="Query to search your files")):
+    """Search for files already downloaded to Premiumize."""
+    try:
+        results = await search_my_files(q)
+        return {"results": results}
+    except Exception as e:
+        logger.error(f"Premiumize search error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

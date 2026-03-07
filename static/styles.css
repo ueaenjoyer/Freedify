@@ -6661,3 +6661,512 @@ body {
     border-color: var(--primary);
     transform: translateY(-1px);
 }
+
+/* ==================== PODCAST FAVORITES ==================== */
+
+/* Heart button on podcast search cards and favorites grid */
+.podcast-fav-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: transform 0.2s ease, background 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+
+.podcast-fav-btn:hover {
+    transform: scale(1.15);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.podcast-fav-btn.favorited {
+    animation: heartPop 0.3s ease;
+}
+
+@keyframes heartPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+    100% { transform: scale(1); }
+}
+
+/* Tag edit button */
+.podcast-tag-edit-btn {
+    position: absolute;
+    top: 8px;
+    right: 44px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: transform 0.2s ease, background 0.2s ease;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+}
+
+.podcast-fav-item:hover .podcast-tag-edit-btn {
+    opacity: 1;
+}
+
+.podcast-tag-edit-btn:hover {
+    transform: scale(1.15);
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Search card wrapper */
+.podcast-search-card-wrapper {
+    position: relative;
+}
+
+.podcast-search-card-wrapper .podcast-fav-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.podcast-search-card-wrapper:hover .podcast-fav-btn,
+.podcast-search-card-wrapper .podcast-fav-btn.favorited {
+    opacity: 1;
+}
+
+/* Episode played styling */
+.episode-played {
+    opacity: 0.5;
+}
+
+.episode-played .track-name {
+    text-decoration: line-through;
+    text-decoration-color: rgba(255, 255, 255, 0.3);
+}
+
+.episode-played-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.episode-played-btn:hover {
+    transform: scale(1.2);
+}
+
+/* Tag filter pills */
+.podcast-tag-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.podcast-tag-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+}
+
+.podcast-tag-btn.active {
+    background: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+/* Podcast detail favorite button */
+.podcast-detail-fav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.podcast-detail-fav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.podcast-detail-fav-btn.saved {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+}
+
+/* Tag display under podcast name */
+.podcast-tag-display {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Podcast favorites item needs relative pos for overlay buttons */
+.podcast-fav-item {
+    position: relative;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+    .podcast-fav-btn {
+        opacity: 1;
+    }
+    
+    .podcast-tag-edit-btn {
+        opacity: 1;
+    }
+    
+    .podcast-search-card-wrapper .podcast-fav-btn {
+        opacity: 1;
+    }
+}
+
+/* ==================== BOOK INFO MODAL ==================== */
+.book-info-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.book-info-modal.hidden {
+    display: none;
+}
+
+.book-info-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+}
+
+.book-info-content {
+    position: relative;
+    background: var(--bg-primary);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    max-width: 640px;
+    width: 92vw;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    animation: bookModalIn 0.3s ease;
+}
+
+@keyframes bookModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.book-info-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.4rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 5;
+}
+
+.book-info-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+}
+
+.book-info-header {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.book-info-art {
+    width: 140px;
+    height: 210px;
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    flex-shrink: 0;
+}
+
+.book-info-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.book-info-meta h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    line-height: 1.2;
+}
+
+.book-info-author {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0 0 10px 0;
+}
+
+.book-info-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.book-info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.book-info-badge.rating {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.book-info-badge.genres {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--accent-color, #6366f1);
+}
+
+.book-info-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.book-info-actions .album-action-btn {
+    font-size: 0.85rem;
+    padding: 8px 18px;
+}
+
+/* Tabs */
+.book-info-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 16px;
+}
+
+.book-info-tab {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.book-info-tab:hover {
+    color: var(--text-primary);
+}
+
+.book-info-tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-color, #6366f1);
+    font-weight: 600;
+}
+
+.book-info-tab-content {
+    display: none;
+}
+
+.book-info-tab-content.active {
+    display: block;
+}
+
+/* Description */
+.book-info-description {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+}
+
+/* Goodreads section */
+.book-info-goodreads {
+    min-height: 100px;
+}
+
+.book-info-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 30px;
+    color: var(--text-secondary);
+}
+
+.book-info-gr-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.book-info-gr-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.book-info-gr-stars {
+    color: #ffc107;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.book-info-gr-score {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.book-info-gr-count {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.book-info-gr-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.book-info-gr-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-primary);
+}
+
+/* Review cards */
+.book-info-review {
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.book-info-review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.book-info-reviewer {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.book-info-review-stars {
+    color: #ffc107;
+    font-size: 0.85rem;
+}
+
+.book-info-review-date {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+}
+
+.book-info-review-text {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+}
+
+.book-info-no-reviews {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+    .book-info-content {
+        padding: 20px;
+        max-height: 90vh;
+        border-radius: 12px;
+    }
+    
+    .book-info-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .book-info-art {
+        width: 120px;
+        height: 180px;
+    }
+    
+    .book-info-badges {
+        justify-content: center;
+    }
+    
+    .book-info-actions {
+        justify-content: center;
+    }
+}

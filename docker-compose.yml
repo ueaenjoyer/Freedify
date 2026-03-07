@@ -32,6 +32,7 @@ services:
       - SPOTIFY_SP_DC=${SPOTIFY_SP_DC:-}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - JAMENDO_CLIENT_ID=${JAMENDO_CLIENT_ID:-}
+      - PREMIUMIZE_API_KEY=${PREMIUMIZE_API_KEY:-}
     volumes:
       # Persist cache for faster repeated plays
       - freedify-cache:/app/cache
