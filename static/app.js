@@ -8815,16 +8815,52 @@ async function checkExistingAudiobook(title) {
         if (data && data.results && data.results.length > 0) {
             // Find a folder match
             const folder = data.results.find(i => i.type === 'folder');
+            const audioExtensions = ['.mp3', '.m4b', '.m4a', '.flac', '.wav', '.ogg'];
+            const audioFiles = data.results.filter(i => 
+                i.type === 'file' && audioExtensions.some(ext => i.name.toLowerCase().endsWith(ext))
+            );
+            
             if (folder) {
                 const btn = $('#audiobook-download-btn');
                 btn.textContent = '▶ Play from Premiumize Cache';
                 btn.onclick = () => loadAudiobookFolder(folder.id, currentAudiobookDetails);
+                showToast('Found in Premiumize cache!');
+            } else if (audioFiles.length > 0) {
+                const btn = $('#audiobook-download-btn');
+                btn.textContent = '▶ Play from Premiumize Cache';
+                btn.onclick = () => processDirectAudioFiles(audioFiles, currentAudiobookDetails);
                 showToast('Found in Premiumize cache!');
             }
         }
     } catch (e) {
         console.error("Cache check failed", e);
     }
+}
+
+function processDirectAudioFiles(audioFiles, details) {
+    audioFiles.sort((a, b) => a.name.localeCompare(b.name));
+    audiobookModal.classList.add('hidden');
+    
+    const mappedTracks = audioFiles.map((file, index) => {
+        const streamUrl = file.stream_link || file.directlink || file.link;
+        const stableId = 'abb_' + details.id + '_' + index;
+        return {
+            id: stableId,
+            name: file.name.replace(/\.[^/.]+$/, ""),
+            artists: details.author || 'Unknown Author',
+            album_art: details.cover_image || '/static/icon.svg',
+            duration: file.size ? formatBytes(file.size) : 'Unknown',
+            url: streamUrl,
+            src: streamUrl,
+            is_local: false,
+            track_number: index + 1,
+            source: 'audiobook',
+            file_id: file.id
+        };
+    });
+    
+    updateAudiobookFavorites(details, mappedTracks);
+    showDetailView(details.id, 'album');
 }
 
 async function startAudiobookDownload(magnetLink) {
@@ -8914,8 +8950,15 @@ async function autoFindFinishedFolder() {
         const response = await fetch(`/api/premiumize/search?q=${encodeURIComponent(currentAudiobookDetails.title.split(' ')[0])}`);
         const data = await response.json();
         const folder = data.results.find(i => i.type === 'folder');
+        const audioExtensions = ['.mp3', '.m4b', '.m4a', '.flac', '.wav', '.ogg'];
+        const audioFiles = data.results.filter(i => 
+            i.type === 'file' && audioExtensions.some(ext => i.name.toLowerCase().endsWith(ext))
+        );
+        
         if (folder) {
             loadAudiobookFolder(folder.id, currentAudiobookDetails);
+        } else if (audioFiles.length > 0) {
+            processDirectAudioFiles(audioFiles, currentAudiobookDetails);
         } else {
             $('#audiobook-progress-status').textContent = 'Completed, but could not locate folder. Check your Premiumize web interface.';
             $('#audiobook-progress-percent').textContent = '';
