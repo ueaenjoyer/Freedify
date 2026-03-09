@@ -1,0 +1,1434 @@
+{
+  "version": "2.6",
+  "data": {
+    "artists": {
+      "limit": 25,
+      "offset": 0,
+      "totalNumberOfItems": 1,
+      "items": [
+        {
+          "id": 3634161,
+          "name": "The Beatles",
+          "artistTypes": [
+            "ARTIST",
+            "CONTRIBUTOR"
+          ],
+          "url": "http://www.tidal.com/artist/3634161",
+          "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31",
+          "selectedAlbumCoverFallback": null,
+          "popularity": 92,
+          "artistRoles": [
+            {
+              "categoryId": -1,
+              "category": "Artist"
+            },
+            {
+              "categoryId": 2,
+              "category": "Songwriter"
+            },
+            {
+              "categoryId": 1,
+              "category": "Producer"
+            },
+            {
+              "categoryId": 11,
+              "category": "Performer"
+            },
+            {
+              "categoryId": 10,
+              "category": "Production team"
+            },
+            {
+              "categoryId": 99,
+              "category": "Misc"
+            }
+          ],
+          "mixes": {
+            "ARTIST_MIX": "000073cc5362666b5abfcaae474a5c"
+          },
+          "handle": null,
+          "userId": null,
+          "spotlighted": false
+        }
+      ]
+    },
+    "albums": {
+      "limit": 25,
+      "offset": 0,
+      "totalNumberOfItems": 300,
+      "items": [
+        {
+          "id": 55130630,
+          "title": "Abbey Road (Remastered)",
+          "duration": 2839,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 17,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1969-09-26",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130630",
+          "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+          "vibrantColor": "#a3d7ec",
+          "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a",
+          "explicit": false,
+          "upc": "00602547670342",
+          "popularity": 89,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163302,
+          "title": "The Beatles (Remastered)",
+          "duration": 5608,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 30,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 2,
+          "releaseDate": "1968-11-22",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163302",
+          "cover": "6f188b5e-9aa0-4f2a-835e-337f61c52e8d",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": "69e44759-100c-46e4-b51d-ad6daf54f57f",
+          "explicit": false,
+          "upc": "00602547670175",
+          "popularity": 87,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163273,
+          "title": "Rubber Soul (Remastered 2009)",
+          "duration": 2133,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 14,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1965-12-03",
+          "copyright": "\u00a9 2009 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered 2009",
+          "url": "http://www.tidal.com/album/55163273",
+          "cover": "66ed1719-f46c-4ef6-afa3-b9f0af2fcecb",
+          "vibrantColor": "#eed9b0",
+          "videoCover": "354f45fa-0fea-4370-8de1-1787d8909f2e",
+          "explicit": false,
+          "upc": "00602547670151",
+          "popularity": 85,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163258,
+          "title": "Revolver (Remastered)",
+          "duration": 2078,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 14,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1966-08-05",
+          "copyright": "\u00a9 2015 Apple Corps Ltd.",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163258",
+          "cover": "2f02e7b1-626c-4637-8bed-ffe0f46be122",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602547670137",
+          "popularity": 85,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55130596,
+          "title": "1 (Remastered)",
+          "duration": 4751,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 27,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "2000-11-14",
+          "copyright": "\u00a9 2015 Apple Corps Ltd.",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130596",
+          "cover": "0c77b45b-568d-4b76-a90e-4c1a9d82faea",
+          "vibrantColor": "#e41b13",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602547673503",
+          "popularity": 84,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55130733,
+          "title": "Let It Be (Remastered)",
+          "duration": 2106,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 12,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1970-05-08",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130733",
+          "cover": "dcc6147b-9ba2-4045-9d67-76673fb6059a",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": "8529e816-dcf8-46cc-bc91-b5cab421a885",
+          "explicit": false,
+          "upc": "00602547670069",
+          "popularity": 84,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 118390427,
+          "title": "Abbey Road (Super Deluxe Edition)",
+          "duration": 8006,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2019-09-27T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 40,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 3,
+          "releaseDate": "1969-09-26",
+          "copyright": "\u00a9 2019 Calderstone Productions Limited (a Division of Universal Music Group) / Apple Corps Limited",
+          "type": "ALBUM",
+          "version": "Super Deluxe Edition",
+          "url": "http://www.tidal.com/album/118390427",
+          "cover": "2d3d7c9c-bc3c-4de2-b0fe-18a809291c55",
+          "vibrantColor": "#aedaf2",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602508146107",
+          "popularity": 82,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS",
+              "HIRES_LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55130681,
+          "title": "Help! (Remastered)",
+          "duration": 2036,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 14,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1965-08-06",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130681",
+          "cover": "df003a92-a1e3-4e09-a01a-d7064c1bcae0",
+          "vibrantColor": "#056ea8",
+          "videoCover": "c7f212d3-20e3-4067-8939-cd3bd7484e54",
+          "explicit": false,
+          "upc": "00602547670052",
+          "popularity": 84,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55130767,
+          "title": "Magical Mystery Tour (Remastered)",
+          "duration": 2192,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 11,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1967-11-27",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130767",
+          "cover": "3d44f977-816c-4bab-8347-da60ba26ee42",
+          "vibrantColor": "#ed5533",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602547670076",
+          "popularity": 83,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 97872030,
+          "title": "The Beatles (White Album / Super Deluxe)",
+          "duration": 19639,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2018-11-09T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 107,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 6,
+          "releaseDate": "1968-11-22",
+          "copyright": "\u00a9 2018 Calderstone Productions Limited (a Division of Universal Music Group) / Apple Corps Limited",
+          "type": "ALBUM",
+          "version": "White Album / Super Deluxe",
+          "url": "http://www.tidal.com/album/97872030",
+          "cover": "b9babea7-438f-4781-b0b6-214654860372",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602577097072",
+          "popularity": 82,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS",
+              "HIRES_LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163288,
+          "title": "Sgt. Pepper's Lonely Hearts Club Band (Remastered)",
+          "duration": 2390,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 13,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1967-05-26",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163288",
+          "cover": "26af3629-6638-4b5b-9e98-60c64778ec28",
+          "vibrantColor": "#e4d154",
+          "videoCover": "9a6779c8-bc83-4f54-8f3c-c7dc278f784e",
+          "explicit": false,
+          "upc": "00602547673473",
+          "popularity": 83,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55130564,
+          "title": "A Hard Day's Night (Remastered)",
+          "duration": 1811,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 13,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1964-07-10",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130564",
+          "cover": "caae4de7-a4a4-4e2e-8eb8-efde20784d81",
+          "vibrantColor": "#ac273a",
+          "videoCover": "f3e82ff6-d46d-48cd-82eb-c13504180942",
+          "explicit": false,
+          "upc": "00602547670335",
+          "popularity": 80,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163243,
+          "title": "Please Please Me (Remastered)",
+          "duration": 1951,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 14,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1963-03-22",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163243",
+          "cover": "71c2d51c-e326-4a1b-8534-622b79fc8d29",
+          "vibrantColor": "#e85f5a",
+          "videoCover": "34629aad-4a67-4231-8ab9-b4a70bcf971f",
+          "explicit": false,
+          "upc": "00602547670113",
+          "popularity": 79,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163360,
+          "title": "The Beatles 1967 - 1970 (Remastered)",
+          "duration": 5995,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 28,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 2,
+          "releaseDate": "1973-04-02",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163360",
+          "cover": "fd9928fd-5b21-43b8-8825-0d16fac91b48",
+          "vibrantColor": "#0e4da3",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602547670274",
+          "popularity": 76,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163389,
+          "title": "With The Beatles (Remastered)",
+          "duration": 1987,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 14,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1963-11-22",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163389",
+          "cover": "cdf42272-f200-4a5b-acc6-692eab4c8d8b",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": "26ba2946-d724-4538-a13f-b79e54864e0e",
+          "explicit": false,
+          "upc": "00602547670304",
+          "popularity": 77,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55130661,
+          "title": "Beatles For Sale (Remastered)",
+          "duration": 2027,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 14,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1964-12-04",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130661",
+          "cover": "b54264a0-3683-4fc1-ba62-06d245c733e9",
+          "vibrantColor": "#f3dbaa",
+          "videoCover": "45858b55-fb3e-4332-9bd5-ad64635d1f77",
+          "explicit": false,
+          "upc": "00602547670359",
+          "popularity": 76,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55130781,
+          "title": "Yellow Submarine (Remastered)",
+          "duration": 2383,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 13,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1969-01-13",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130781",
+          "cover": "ee9d65f0-0723-4167-a951-7f35575bfd59",
+          "vibrantColor": "#df5b8c",
+          "videoCover": "402dc2e4-f9c9-4726-b623-d29c92ee6252",
+          "explicit": false,
+          "upc": "00602547670328",
+          "popularity": 76,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 95648356,
+          "title": "Sgt. Pepper's Lonely Hearts Club Band (Super Deluxe Edition)",
+          "duration": 12220,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2018-09-28T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 65,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 4,
+          "releaseDate": "1967-05-26",
+          "copyright": "\u00a9 2018 Apple Corps Limited",
+          "type": "ALBUM",
+          "version": "Super Deluxe Edition",
+          "url": "http://www.tidal.com/album/95648356",
+          "cover": "80b44f93-be45-4cc7-b61e-54f15e7bde43",
+          "vibrantColor": "#73c9ef",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602577150067",
+          "popularity": 76,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS",
+              "HIRES_LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 256794892,
+          "title": "Revolver (Super Deluxe)",
+          "duration": 9736,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2022-10-28T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 63,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 5,
+          "releaseDate": "1966-08-05",
+          "copyright": "\u00a9 2022 Calderstone Productions Limited (a division of Universal Music Group)",
+          "type": "ALBUM",
+          "version": "Super Deluxe",
+          "url": "http://www.tidal.com/album/256794892",
+          "cover": "0a0782b6-67da-4a26-bcc8-44dd755723cf",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": "b1a9790b-dd3f-4102-8527-a567edae36f4",
+          "explicit": false,
+          "upc": "00602448516633",
+          "popularity": 75,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS",
+              "HIRES_LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163407,
+          "title": "Past Masters (Vols. 1 & 2 / Remastered)",
+          "duration": 5589,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 33,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 2,
+          "releaseDate": "1988-03-01",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Vols. 1 & 2 / Remastered",
+          "url": "http://www.tidal.com/album/55163407",
+          "cover": "727fcc58-e97f-428a-9be0-d233b117e6b0",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602547756718",
+          "popularity": 73,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 200566137,
+          "title": "Let It Be (2021 Mix)",
+          "duration": 2109,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-10-15T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 12,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1970-05-08",
+          "copyright": "\u00a9 2021 Calderstone Productions Limited (a division of Universal Music Group)",
+          "type": "ALBUM",
+          "version": "2021 Mix",
+          "url": "http://www.tidal.com/album/200566137",
+          "cover": "c4a32a6a-d1f0-4100-8aae-cc9a22ea1ece",
+          "vibrantColor": "#b74d41",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602438575695",
+          "popularity": 73,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS",
+              "HIRES_LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 55163333,
+          "title": "The Beatles 1962 - 1966 (Remastered)",
+          "duration": 3763,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 26,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 2,
+          "releaseDate": "1973-04-02",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163333",
+          "cover": "a83eebad-830a-4bdd-8462-9015cc2e5772",
+          "vibrantColor": "#ec3f48",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602547670243",
+          "popularity": 73,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 82697541,
+          "title": "Sgt. Pepper's Lonely Hearts Club Band (Deluxe Anniversary Edition)",
+          "duration": 6013,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2017-12-15T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 31,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 2,
+          "releaseDate": "1967-05-26",
+          "copyright": "\u00a9 2017 Apple Corps Limited",
+          "type": "ALBUM",
+          "version": "Deluxe Anniversary Edition",
+          "url": "http://www.tidal.com/album/82697541",
+          "cover": "cc92ccdb-fd75-499f-b1e2-fcb3bfcb613e",
+          "vibrantColor": "#6dcdf1",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602567163909",
+          "popularity": 72,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS",
+              "HIRES_LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 61818737,
+          "title": "Love",
+          "duration": 5200,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 28,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "2006-11-21",
+          "copyright": "\u00a9 2011 Cirque Apple Creative Partnership/Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": null,
+          "url": "http://www.tidal.com/album/61818737",
+          "cover": "ff405013-1386-4a99-b06c-150ee3ca5c8d",
+          "vibrantColor": "#facf63",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602557015997",
+          "popularity": 72,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        {
+          "id": 97491884,
+          "title": "Let It Be... Naked (Remastered)",
+          "duration": 2099,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2018-07-06T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 11,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "2003-11-18",
+          "copyright": "\u00a9 2014 Apple Corps Limited/Calderstone Productions Limited (a division of Universal Music Group)",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/97491884",
+          "cover": "dac3cee7-d258-4468-9274-1eae507b0738",
+          "vibrantColor": "#d62e35",
+          "videoCover": null,
+          "explicit": false,
+          "upc": "00602537738960",
+          "popularity": 70,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        }
+      ]
+    },
+    "playlists": {
+      "limit": 25,
+      "offset": 0,
+      "totalNumberOfItems": 0,
+      "items": []
+    },
+    "tracks": {
+      "limit": 25,
+      "offset": 0,
+      "totalNumberOfItems": 0,
+      "items": []
+    },
+    "videos": {
+      "limit": 25,
+      "offset": 0,
+      "totalNumberOfItems": 0,
+      "items": []
+    },
+    "genres": [],
+    "topHits": [
+      {
+        "value": {
+          "id": 3634161,
+          "name": "The Beatles",
+          "artistTypes": [
+            "ARTIST",
+            "CONTRIBUTOR"
+          ],
+          "url": "http://www.tidal.com/artist/3634161",
+          "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31",
+          "selectedAlbumCoverFallback": null,
+          "popularity": 92,
+          "artistRoles": [
+            {
+              "categoryId": -1,
+              "category": "Artist"
+            },
+            {
+              "categoryId": 2,
+              "category": "Songwriter"
+            },
+            {
+              "categoryId": 1,
+              "category": "Producer"
+            },
+            {
+              "categoryId": 11,
+              "category": "Performer"
+            },
+            {
+              "categoryId": 10,
+              "category": "Production team"
+            },
+            {
+              "categoryId": 99,
+              "category": "Misc"
+            }
+          ],
+          "mixes": {
+            "ARTIST_MIX": "000073cc5362666b5abfcaae474a5c"
+          },
+          "handle": null,
+          "userId": null,
+          "spotlighted": false
+        },
+        "type": "ARTISTS"
+      },
+      {
+        "value": {
+          "id": 55130630,
+          "title": "Abbey Road (Remastered)",
+          "duration": 2839,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 17,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1969-09-26",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55130630",
+          "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+          "vibrantColor": "#a3d7ec",
+          "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a",
+          "explicit": false,
+          "upc": "00602547670342",
+          "popularity": 89,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        "type": "ALBUMS"
+      },
+      {
+        "value": {
+          "id": 55163302,
+          "title": "The Beatles (Remastered)",
+          "duration": 5608,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 30,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 2,
+          "releaseDate": "1968-11-22",
+          "copyright": "\u00a9 2015 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered",
+          "url": "http://www.tidal.com/album/55163302",
+          "cover": "6f188b5e-9aa0-4f2a-835e-337f61c52e8d",
+          "vibrantColor": "#FFFFFF",
+          "videoCover": "69e44759-100c-46e4-b51d-ad6daf54f57f",
+          "explicit": false,
+          "upc": "00602547670175",
+          "popularity": 87,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        "type": "ALBUMS"
+      },
+      {
+        "value": {
+          "id": 55163273,
+          "title": "Rubber Soul (Remastered 2009)",
+          "duration": 2133,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "allowStreaming": true,
+          "premiumStreamingOnly": false,
+          "numberOfTracks": 14,
+          "numberOfVideos": 0,
+          "numberOfVolumes": 1,
+          "releaseDate": "1965-12-03",
+          "copyright": "\u00a9 2009 Apple Corps Ltd",
+          "type": "ALBUM",
+          "version": "Remastered 2009",
+          "url": "http://www.tidal.com/album/55163273",
+          "cover": "66ed1719-f46c-4ef6-afa3-b9f0af2fcecb",
+          "vibrantColor": "#eed9b0",
+          "videoCover": "354f45fa-0fea-4370-8de1-1787d8909f2e",
+          "explicit": false,
+          "upc": "00602547670151",
+          "popularity": 85,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ]
+        },
+        "type": "ALBUMS"
+      }
+    ]
+  }
+}

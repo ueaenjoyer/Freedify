@@ -2582,7 +2582,7 @@ function showAlbumModal(album) {
             <div class="track-row-actions">
                 <button class="star-btn ${isStarred ? 'starred' : ''}" data-track-id="${track.id}" data-index="${i}" title="${isStarred ? 'Remove from Library' : 'Add to Library'}">${isStarred ? '★' : '☆'}</button>
                 <button class="album-track-playlist" title="Add to Playlist" data-index="${i}">♡</button>
-                <span class="album-track-duration">${track.duration || '--:--'}</span>
+                <span class="album-track-duration">${typeof track.duration === 'number' ? formatTime(track.duration) : (track.duration || '--:--')}</span>
                 <button title="Add to Queue" data-action="queue" data-index="${i}">+</button>
                 <button title="Download" data-action="download" data-index="${i}">⬇</button>
             </div>
@@ -2706,7 +2706,9 @@ function showAlbumModal(album) {
 // Helper to parse duration string to seconds
 function parseDuration(dur) {
     if (!dur) return 0;
-    const parts = dur.split(':').map(Number);
+    if (typeof dur === 'number') return dur;
+    if (typeof dur === 'string' && !dur.includes(':')) return Number(dur) || 0;
+    const parts = dur.toString().split(':').map(Number);
     if (parts.length === 2) return parts[0] * 60 + parts[1];
     if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
     return 0;
@@ -3071,33 +3073,69 @@ async function updateFormatBadge(audioSrc) {
         }
     }
 
-    
-    // Determine format based on source
-    const isHiResSource = source === 'dab' || source === 'qobuz';
-    const isHiFiSource = source === 'deezer' || source === 'jamendo';
-    const isLossySource = source === 'ytmusic' || source === 'youtube' || source === 'podcast' || source === 'import';
-    
     badge.classList.remove('hidden', 'mp3', 'flac', 'hi-res');
     
-    if (isHiResSource && state.hiResMode) {
-        // Hi-Res 24-bit (Dab/Qobuz with Hi-Res mode)
-        badge.classList.add('flac', 'hi-res');
-        badge.textContent = 'Hi-Res';
-    } else if (isHiResSource || isHiFiSource) {
-        // HiFi 16-bit FLAC (Deezer, Jamendo, or Dab without Hi-Res mode)
-        badge.classList.add('flac');
-        badge.textContent = 'FLAC';
-    } else if (isLossySource) {
-        // Lossy MP3/AAC (YouTube, podcasts, imports)
-        badge.classList.add('mp3');
-        badge.textContent = 'MP3';
-    } else {
-        // Unknown source - default based on preference
-        badge.classList.add('flac');
-        if (state.hiResMode) {
-            badge.classList.add('hi-res');
+    // Attempt to get accurate quality from headers via HEAD request
+    let headersDetermined = false;
+    if (audioSrc && audioSrc.includes('/api/stream/')) {
+        try {
+            // Strip any hash (like #t=10)
+            const headUrl = audioSrc.split('#')[0];
+            const response = await fetch(headUrl, { method: 'HEAD' });
+            if (response.ok) {
+                const audioFormat = response.headers.get('X-Audio-Format');
+                const audioQuality = response.headers.get('X-Audio-Quality');
+                const contentType = response.headers.get('Content-Type');
+                
+                if (audioFormat === 'FLAC') {
+                    badge.classList.add('flac');
+                    if (audioQuality === 'Hi-Res') {
+                        badge.classList.add('hi-res');
+                        badge.textContent = 'HI-RES';
+                    } else {
+                        badge.textContent = 'HIFI';
+                    }
+                    headersDetermined = true;
+                } else if (contentType && (contentType.includes('mpeg') || contentType.includes('mp3') || contentType.includes('mp4') || contentType.includes('aac'))) {
+                    badge.classList.add('mp3');
+                    if (contentType.includes('mp4') || source === 'audiobook') {
+                        badge.textContent = 'M4B';
+                    } else {
+                        badge.textContent = 'MP3';
+                    }
+                    headersDetermined = true;
+                }
+            }
+        } catch (e) {
+            console.log('Failed to fetch stream headers for badge', e);
         }
-        badge.textContent = 'FLAC';
+    }
+    
+    // Fallback to guessing based on source if headers failed or it's a direct URL
+    if (!headersDetermined) {
+        const isHiResSource = source === 'dab' || source === 'qobuz' || source === 'tidal';
+        const isHiFiSource = source === 'deezer' || source === 'jamendo';
+        const isLossySource = source === 'ytmusic' || source === 'youtube' || source === 'podcast' || source === 'import';
+        
+        if (isHiResSource && state.hiResMode) {
+            badge.classList.add('flac', 'hi-res');
+            badge.textContent = 'HI-RES';
+        } else if (isHiResSource || isHiFiSource) {
+            badge.classList.add('flac');
+            badge.textContent = 'HIFI';
+        } else if (isLossySource) {
+            badge.classList.add('mp3');
+            if (source === 'audiobook') badge.textContent = 'M4B';
+            else badge.textContent = 'MP3';
+        } else {
+            badge.classList.add('flac');
+            if (state.hiResMode) {
+                badge.classList.add('hi-res');
+                badge.textContent = 'HI-RES';
+            } else {
+                badge.textContent = 'HIFI';
+            }
+        }
     }
     
     // Also update the HiFi button in header
@@ -3221,7 +3259,8 @@ async function loadTrack(track) {
     } else {
         const hiresParam = state.hiResMode ? '&hires=true' : '&hires=false';
         const qualityParam = state.hiResMode ? `&hires_quality=${state.hiResQuality}` : '';
-        let targetSrc = `/api/stream/${track.isrc || track.id}?q=${encodeURIComponent(track.name + ' ' + track.artists)}${hiresParam}${qualityParam}`;
+        const sourceParam = track.source ? `&source=${track.source}` : '';
+        let targetSrc = `/api/stream/${track.isrc || track.id}?q=${encodeURIComponent(track.name + ' ' + track.artists)}${hiresParam}${qualityParam}${sourceParam}`;
         
         if (track._resumeAt && track._resumeAt > 10) {
             targetSrc += `#t=${track._resumeAt}`;
@@ -3817,7 +3856,8 @@ function preloadNextTrack() {
     const query = `${nextTrack.name} ${nextTrack.artists}`;
     const hiresParam = state.hiResMode ? '&hires=true' : '&hires=false';
     const qualityParam = state.hiResMode ? `&hires_quality=${state.hiResQuality}` : '';
-    const streamUrl = `/api/stream/${nextTrack.isrc || nextTrack.id}?q=${encodeURIComponent(query)}${hiresParam}${qualityParam}`;
+    const sourceParam = nextTrack.source ? `&source=${nextTrack.source}` : '';
+    const streamUrl = `/api/stream/${nextTrack.isrc || nextTrack.id}?q=${encodeURIComponent(query)}${hiresParam}${qualityParam}${sourceParam}`;
     
     // Load into the inactive player for gapless transition
     const inactivePlayer = activePlayer === 1 ? audioPlayer2 : audioPlayer;

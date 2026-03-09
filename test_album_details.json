@@ -1,0 +1,1214 @@
+{
+  "version": "2.6",
+  "data": {
+    "id": 55130630,
+    "title": "Abbey Road (Remastered)",
+    "duration": 2839,
+    "streamReady": true,
+    "payToStream": false,
+    "adSupportedStreamReady": true,
+    "djReady": true,
+    "stemReady": false,
+    "streamStartDate": "2021-02-25T00:00:00.000+0000",
+    "allowStreaming": true,
+    "premiumStreamingOnly": false,
+    "numberOfTracks": 17,
+    "numberOfVideos": 0,
+    "numberOfVolumes": 1,
+    "releaseDate": "1969-09-26",
+    "copyright": "\u00a9 2015 Apple Corps Ltd",
+    "type": "ALBUM",
+    "version": "Remastered",
+    "url": "http://www.tidal.com/album/55130630",
+    "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+    "vibrantColor": "#a3d7ec",
+    "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a",
+    "explicit": false,
+    "upc": "00602547670342",
+    "popularity": 83,
+    "audioQuality": "LOSSLESS",
+    "audioModes": [
+      "STEREO"
+    ],
+    "mediaMetadata": {
+      "tags": [
+        "LOSSLESS"
+      ]
+    },
+    "upload": false,
+    "artist": {
+      "id": 3634161,
+      "name": "The Beatles",
+      "handle": null,
+      "type": "MAIN",
+      "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+    },
+    "artists": [
+      {
+        "id": 3634161,
+        "name": "The Beatles",
+        "handle": null,
+        "type": "MAIN",
+        "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+      }
+    ],
+    "items": [
+      {
+        "item": {
+          "id": 55130631,
+          "title": "Come Together",
+          "duration": 259,
+          "replayGain": -7.08,
+          "peak": 0.958495,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 1,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 87,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 165,
+          "key": "G",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130631",
+          "isrc": "GBAYE0601690",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001bc92881c2fb209e2b27fde569bf"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130632,
+          "title": "Something",
+          "duration": 182,
+          "replayGain": -7.08,
+          "peak": 0.958373,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 2,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 80,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 133,
+          "key": null,
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130632",
+          "isrc": "GBAYE0601691",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001543fd1e9d35598e6acb72a3cfdd"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130633,
+          "title": "Maxwell's Silver Hammer",
+          "duration": 207,
+          "replayGain": -7.08,
+          "peak": 0.958434,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 3,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 75,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 132,
+          "key": "A",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130633",
+          "isrc": "GBAYE0601692",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "0011ee8ab8bee4674c72fc26eb3bc5"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130634,
+          "title": "Oh! Darling",
+          "duration": 207,
+          "replayGain": -7.08,
+          "peak": 0.966796,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 4,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 77,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 172,
+          "key": "A",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130634",
+          "isrc": "GBAYE0601693",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001527284f2bbedee55d5b761d0ce8"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130635,
+          "title": "Octopus's Garden",
+          "duration": 170,
+          "replayGain": -7.08,
+          "peak": 0.958312,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 5,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 76,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 92,
+          "key": "A",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130635",
+          "isrc": "GBAYE0601694",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "0017aa70977fa066e95764fb5b7169"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130636,
+          "title": "I Want You (She's So Heavy)",
+          "duration": 467,
+          "replayGain": -7.08,
+          "peak": 0.961822,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 6,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 78,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 143,
+          "key": "D",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130636",
+          "isrc": "GBAYE0601695",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001fca761100f0df04d1625c704e2d"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130637,
+          "title": "Here Comes The Sun",
+          "duration": 185,
+          "replayGain": -7.08,
+          "peak": 0.958526,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 7,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 89,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 129,
+          "key": "A",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130637",
+          "isrc": "GBAYE0601696",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "0010d2ae922b6de6ab012f7653ae43"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130638,
+          "title": "Because",
+          "duration": 165,
+          "replayGain": -7.08,
+          "peak": 0.875883,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 8,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 74,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 163,
+          "key": null,
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130638",
+          "isrc": "GBAYE0601697",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "0018a5814d4d7516a435075088afdb"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130639,
+          "title": "You Never Give Me Your Money",
+          "duration": 242,
+          "replayGain": -7.08,
+          "peak": 0.958343,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 9,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 74,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 178,
+          "key": "A",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130639",
+          "isrc": "GBAYE0601698",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001921734595ff74adad9d99a9b3c0"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130640,
+          "title": "Sun King",
+          "duration": 146,
+          "replayGain": -7.08,
+          "peak": 0.939055,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 10,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 73,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 151,
+          "key": "A",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130640",
+          "isrc": "GBAYE0601699",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001e162837b34dd267a1d054a34a85"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130641,
+          "title": "Mean Mr Mustard",
+          "duration": 66,
+          "replayGain": -7.08,
+          "peak": 0.960204,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 11,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 72,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 100,
+          "key": null,
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130641",
+          "isrc": "GBAYE0601700",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "00128c8467f4e8c86d6b4357899371"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130642,
+          "title": "Polythene Pam",
+          "duration": 72,
+          "replayGain": -7.08,
+          "peak": 0.958373,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 12,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 73,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 166,
+          "key": "A",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130642",
+          "isrc": "GBAYE0601701",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001cd7a8d492228664a3c42df0df93"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130643,
+          "title": "She Came In Through The Bathroom Window",
+          "duration": 118,
+          "replayGain": -7.08,
+          "peak": 0.959319,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 13,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 75,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 163,
+          "key": "D",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130643",
+          "isrc": "GBAYE0601702",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "0014196f59da120b9bcb0d691b0bf1"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130644,
+          "title": "Golden Slumbers",
+          "duration": 91,
+          "replayGain": -7.08,
+          "peak": 0.958556,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 14,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 77,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": null,
+          "key": null,
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130644",
+          "isrc": "GBAYE0601703",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001f70c3fd74c0843d0630d1a4fdeb"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130645,
+          "title": "Carry That Weight",
+          "duration": 96,
+          "replayGain": -7.08,
+          "peak": 0.958618,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 15,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 75,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 166,
+          "key": "C",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130645",
+          "isrc": "GBAYE0601704",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "00148e6e4646df2274eeca6ad61e0d"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130646,
+          "title": "The End",
+          "duration": 141,
+          "replayGain": -7.08,
+          "peak": 0.972473,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 16,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 73,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": 124,
+          "key": "C#",
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130646",
+          "isrc": "GBAYE0601705",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "001f8f7a1a4c563056ea488f193a57"
+          }
+        },
+        "type": "track"
+      },
+      {
+        "item": {
+          "id": 55130647,
+          "title": "Her Majesty",
+          "duration": 25,
+          "replayGain": -7.08,
+          "peak": 0.95816,
+          "allowStreaming": true,
+          "streamReady": true,
+          "payToStream": false,
+          "adSupportedStreamReady": true,
+          "djReady": true,
+          "stemReady": false,
+          "streamStartDate": "2021-02-25T00:00:00.000+0000",
+          "premiumStreamingOnly": false,
+          "trackNumber": 17,
+          "volumeNumber": 1,
+          "version": "Remastered 2009",
+          "popularity": 51,
+          "copyright": "\u2117 2009 Calderstone Productions Limited (a division of Universal Music Group)",
+          "bpm": null,
+          "key": null,
+          "keyScale": null,
+          "url": "http://www.tidal.com/track/55130647",
+          "isrc": "GBAYE0601706",
+          "editable": false,
+          "explicit": false,
+          "audioQuality": "LOSSLESS",
+          "audioModes": [
+            "STEREO"
+          ],
+          "mediaMetadata": {
+            "tags": [
+              "LOSSLESS"
+            ]
+          },
+          "upload": false,
+          "accessType": "PUBLIC",
+          "spotlighted": false,
+          "artist": {
+            "id": 3634161,
+            "name": "The Beatles",
+            "handle": null,
+            "type": "MAIN",
+            "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+          },
+          "artists": [
+            {
+              "id": 3634161,
+              "name": "The Beatles",
+              "handle": null,
+              "type": "MAIN",
+              "picture": "ad7946a6-2ec4-43f8-b573-1073d73dfe31"
+            }
+          ],
+          "album": {
+            "id": 55130630,
+            "title": "Abbey Road (Remastered)",
+            "cover": "3b612360-1ede-42a5-9a5a-9b4fd14f5fef",
+            "vibrantColor": "#a3d7ec",
+            "videoCover": "e689cb67-39f8-4e3e-b016-05caa309f58a"
+          },
+          "mixes": {
+            "TRACK_MIX": "00190137d9dc526bfd27b8d46fe176"
+          }
+        },
+        "type": "track"
+      }
+    ]
+  }
+}

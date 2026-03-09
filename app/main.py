@@ -46,6 +46,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# ============================================================
+# Stream URL Cache — avoids re-running the full API chain on seek/range requests
+# Key: isrc, Value: (stream_url, metadata, timestamp)
+# Entries expire after STREAM_CACHE_TTL seconds (CDN tokens typically live ~1 hour)
+# ============================================================
+import time
+_stream_url_cache: dict = {}
+STREAM_CACHE_TTL = 1800  # 30 minutes
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -54,6 +62,12 @@ async def lifespan(app: FastAPI):
     
     # Initial cache cleanup
     await cleanup_cache()
+    
+    # Pre-warm Tidal API list at startup (so first play isn't slow)
+    try:
+        await audio_service.update_tidal_apis()
+    except Exception as e:
+        logger.warning(f"Failed to pre-warm Tidal APIs at startup: {e}")
     
     # Start periodic cleanup task
     cleanup_task = asyncio.create_task(periodic_cleanup(30))
@@ -183,14 +197,31 @@ async def search(
         if live_results is not None:
             return {"results": live_results, "query": q, "type": "album", "source": "live_shows"}
         
-        # Regular search - Use Dab Music (Priority) then Deezer
+        # Regular search - Use Tidal (Priority), then Qobuz, then Dab, then Deezer
         logger.info(f"Searching: {q} (type: {type}, offset: {offset})")
         
         results = []
         source = "deezer"
         
-        # 0. Try Qobuz (Squid.wtf) first if Hi-Res enabled
-        if type in ["album", "track"] and offset == 0:
+        # 0. Try Tidal FIRST
+        if type in ["album", "track"]:
+            try:
+                import app.tidal_service as tidal_service
+                if type == "album":
+                    tidal_results = await tidal_service.search_albums(q, limit=20, offset=offset)
+                else:
+                    tidal_results = await tidal_service.search_tracks(q, limit=20, offset=offset)
+                
+                if tidal_results:
+                    logger.info(f"Found {len(tidal_results)} results on Tidal")
+                    results = tidal_results
+                    source = "tidal"
+            except Exception as e:
+                logger.error(f"Tidal search error: {e}")
+        
+        # 1. Try Qobuz (Squid.wtf) if Tidal found no results [BYPASSED — currently broken]
+        from app.audio_service import ENABLE_QOBUZ, ENABLE_DAB
+        if ENABLE_QOBUZ and not results and type in ["album", "track"] and offset == 0:
             try:
                 from app.qobuz_service import qobuz_service
                 if type == "album":
@@ -205,8 +236,8 @@ async def search(
             except Exception as e:
                 logger.error(f"Qobuz search error: {e}")
 
-        # 1. Try Dab Music (fallback/alternative Hi-Res)
-        if not results and type in ["album", "track"] and offset == 0:
+        # 1b. Try Dab Music (fallback/alternative Hi-Res) [BYPASSED — currently broken]
+        if ENABLE_DAB and not results and type in ["album", "track"] and offset == 0:
             try:
                 from app.dab_service import dab_service
                 if type == "album":
@@ -366,12 +397,15 @@ async def get_album(album_id: str):
         if album: return album
         raise HTTPException(status_code=404, detail="Deezer album not found")
 
-    """Get album details with all tracks."""
     try:
         # Handle different sources based on ID prefix
         if album_id.startswith("dz_"):
             # Deezer album
             album = await deezer_service.get_album(album_id)
+        elif album_id.startswith("td_"):
+            # Tidal album
+            from app.tidal_service import get_album as get_tidal_album
+            album = await get_tidal_album(album_id)
         elif album_id.startswith("archive_"):
             # Archive.org show - import via URL
             identifier = album_id.replace("archive_", "")
@@ -464,7 +498,8 @@ async def stream_audio(
     isrc: str,
     q: Optional[str] = Query(None, description="Search query hint"),
     hires: bool = Query(True, description="Prefer Hi-Res 24-bit audio"),
-    hires_quality: str = Query("6", description="Hi-Res quality: 5=192kHz/24bit, 6=96kHz/24bit")
+    hires_quality: str = Query("6", description="Hi-Res quality: 5=192kHz/24bit, 6=96kHz/24bit"),
+    source: Optional[str] = Query(None, description="Source of the track")
 ):
     """Stream audio for a track by ISRC."""
     try:
@@ -569,7 +604,7 @@ async def stream_audio(
         cache_ext = "flac"
         mime_type = "audio/flac"
         
-        # Check cache
+        # Check file cache
         if is_cached(isrc, cache_ext):
             cache_path = get_cache_path(isrc, cache_ext)
             logger.info(f"Serving from cache ({cache_ext}): {cache_path}")
@@ -579,96 +614,124 @@ async def stream_audio(
                 headers={"Accept-Ranges": "bytes", "Cache-Control": "public, max-age=86400"}
             )
         
+        # Check stream URL cache (for seek/range requests on the same track)
+        cached = _stream_url_cache.get(isrc)
+        if cached:
+            cached_url, cached_meta, cached_time = cached
+            if time.time() - cached_time < STREAM_CACHE_TTL:
+                logger.info(f"Stream URL cache HIT for {isrc} — skipping API chain")
+                target_stream_url = cached_url
+                metadata = cached_meta
+            else:
+                # Expired
+                del _stream_url_cache[isrc]
+                cached = None
         
-        # 4. Standard / HiFi Playback (Uses fetch_flac with internal priorities: Dab -> Tidal -> Deezer)
-        
-        # Standard: Fetch FLAC directly (Hifi/Hi-Res) - Skip MP3 transcoding
-        # The user requested to remove non-hifi options for efficiency.
-        result = await audio_service.fetch_flac(isrc, q or "", hires=hires, hires_quality=hires_quality)
-        
-        if not result:
-            raise HTTPException(status_code=404, detail="Could not fetch audio")
+        if not cached:
+            # 4. Full fetch_flac pipeline (only on first play, not on seeks)
+            result = await audio_service.fetch_flac(isrc, q or "", hires=hires, hires_quality=hires_quality, source=source)
             
-        # Check if result is URL (tuple[str, dict]) or Bytes (tuple[bytes, dict])
-        if isinstance(result[0], str):
-            # It's a URL! Stream it via proxy
-            target_stream_url = result[0]
-            metadata = result[1]
-            logger.info(f"Streaming via proxy from URL: {target_stream_url[:50]}...")
+            if not result:
+                raise HTTPException(status_code=404, detail="Could not fetch audio")
             
-            # Proxy streaming logic for fetched URL
-            # Need to handle Range requests properly for seeking
-            
-            req_headers = {}
-            if request.headers.get("Range"):
-                req_headers["Range"] = request.headers.get("Range")
-                logger.info(f"Forwarding Range header: {req_headers['Range']}")
-
-            # Make initial request to get status/headers
-            # Use long read timeout (300s) so slow upstream CDNs don't kill active streams
-            stream_timeout = httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
-            client = httpx.AsyncClient(timeout=stream_timeout, follow_redirects=True)
-            try:
-                upstream_req = client.build_request("GET", target_stream_url, headers=req_headers)
-                upstream_resp = await client.send(upstream_req, stream=True)
+            if isinstance(result[0], str):
+                # It's a URL — cache it for future seek requests
+                target_stream_url = result[0]
+                metadata = result[1]
+                _stream_url_cache[isrc] = (target_stream_url, metadata, time.time())
+                logger.info(f"Stream URL cached for {isrc} (TTL={STREAM_CACHE_TTL}s) - is_hi_res={metadata.get('is_hi_res')}")
+            else:
+                # It's bytes! Serve directly (no caching needed).
+                flac_data, metadata = result
                 
-                # Build response headers
-                resp_headers = {
+                headers = {
                     "Accept-Ranges": "bytes",
-                    "Cache-Control": "public, max-age=3600",
-                    "Access-Control-Allow-Origin": "*",
-                    "X-Accel-Buffering": "no"
+                    "Content-Length": str(len(flac_data)),
+                    "Cache-Control": "public, max-age=86400",
+                    "Access-Control-Expose-Headers": "X-Audio-Quality, X-Audio-Format, Content-Type, Content-Length",
+                    "X-Audio-Format": "FLAC"
                 }
                 
-                # Forward important headers from upstream
-                for key in ["Content-Range", "Content-Length", "Content-Type"]:
-                    if upstream_resp.headers.get(key):
-                        resp_headers[key] = upstream_resp.headers[key]
-                
                 if metadata and metadata.get("is_hi_res"):
-                    resp_headers["X-Audio-Quality"] = "Hi-Res"
-                    resp_headers["X-Audio-Format"] = "FLAC"
-
-                # Iterator that closes client when done
-                async def response_iterator():
-                    try:
-                        async for chunk in upstream_resp.aiter_bytes(chunk_size=65536):
-                            yield chunk
-                    except Exception as e:
-                        logger.error(f"Stream iteration error: {e}")
-                    finally:
-                        await upstream_resp.aclose()
-                        await client.aclose()
-                
-                return StreamingResponse(
-                    response_iterator(),
-                    status_code=upstream_resp.status_code,  # 200 or 206
-                    media_type=upstream_resp.headers.get("Content-Type", "audio/flac"), 
-                    headers=resp_headers
+                    headers["X-Audio-Quality"] = "Hi-Res"
+                    
+                return Response(
+                    content=flac_data,
+                    media_type="audio/flac",
+                    headers=headers
                 )
-            except Exception as e:
-                await client.aclose()
-                raise
-            
-        else:
-            # It's bytes! Serve directly.
-            flac_data, metadata = result
-            
-            headers = {
+        
+        # 5. Proxy the resolved stream URL (handles both cached and freshly-resolved URLs)
+        logger.info(f"Proxying stream: {target_stream_url[:60]}...")
+        
+        req_headers = {}
+        if request.headers.get("Range"):
+            req_headers["Range"] = request.headers.get("Range")
+            logger.info(f"Forwarding Range header: {req_headers['Range']}")
+
+        if request.method == "HEAD":
+            head_headers = {
                 "Accept-Ranges": "bytes",
-                "Content-Length": str(len(flac_data)),
-                "Cache-Control": "public, max-age=86400",
+                "Cache-Control": "public, max-age=3600",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Expose-Headers": "X-Audio-Quality, X-Audio-Format, Content-Type, Content-Length",
+                "Content-Type": "audio/flac",
                 "X-Audio-Format": "FLAC"
             }
-            
             if metadata and metadata.get("is_hi_res"):
-                headers["X-Audio-Quality"] = "Hi-Res"
+                head_headers["X-Audio-Quality"] = "Hi-Res"
+            else:
+                # Explicitly remove it or set it to standard so browser sees it change
+                head_headers["X-Audio-Quality"] = "Standard"
                 
-            return Response(
-                content=flac_data,
-                media_type="audio/flac",
-                headers=headers
+            return Response(status_code=200, headers=head_headers)
+
+        stream_timeout = httpx.Timeout(connect=10.0, read=300.0, write=10.0, pool=10.0)
+        client = httpx.AsyncClient(timeout=stream_timeout, follow_redirects=True)
+        try:
+            upstream_req = client.build_request("GET", target_stream_url, headers=req_headers)
+            upstream_resp = await client.send(upstream_req, stream=True)
+            
+            # Build response headers
+            resp_headers = {
+                "Accept-Ranges": "bytes",
+                "Cache-Control": "public, max-age=3600",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Expose-Headers": "X-Audio-Quality, X-Audio-Format, Content-Type, Content-Length",
+                "X-Accel-Buffering": "no"
+            }
+            
+            # Forward important headers from upstream
+            for key in ["Content-Range", "Content-Length", "Content-Type"]:
+                if upstream_resp.headers.get(key):
+                    resp_headers[key] = upstream_resp.headers[key]
+            
+            resp_headers["X-Audio-Format"] = "FLAC"
+            if metadata and metadata.get("is_hi_res"):
+                resp_headers["X-Audio-Quality"] = "Hi-Res"
+            else:
+                resp_headers["X-Audio-Quality"] = "Standard"
+
+            # Iterator that closes client when done
+            async def response_iterator():
+                try:
+                    async for chunk in upstream_resp.aiter_bytes(chunk_size=65536):
+                        yield chunk
+                except Exception as e:
+                    logger.error(f"Stream iteration error: {e}")
+                finally:
+                    await upstream_resp.aclose()
+                    await client.aclose()
+            
+            return StreamingResponse(
+                response_iterator(),
+                status_code=upstream_resp.status_code,  # 200 or 206
+                media_type=upstream_resp.headers.get("Content-Type", "audio/flac"), 
+                headers=resp_headers
             )
+        except Exception as e:
+            await client.aclose()
+            raise
         
     except HTTPException:
         raise

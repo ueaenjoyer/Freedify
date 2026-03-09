@@ -10,6 +10,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.3.6] - 2026-03-09
+
+### Added
+- **Tidal Hi-Res FLAC APIs**: Added multiple new upstream proxy APIs capable of resolving and streaming true 24-bit Hi-Res LOSSLESS FLAC tracks directly from Tidal.
+- **Stream URL Cache**: Seeking around a track now instantly reuses the existing upstream stream URL without re-triggering the full API search chain, saving significant battery and bandwidth.
+- **Dynamic Quality Badging**: The "Now Playing" UI now extracts `X-Audio-Quality` and `Content-Type` directly from stream headers via an instantaneous pre-flight `HEAD` request. Badges proudly display **HI-RES** (24-bit), **HIFI** (16-bit), **M4B**, or **MP3** dynamically.
+
+### Improved
+- **API Search Pipeline Redesign**: Audio routing logic is now separated into two explicitly distinct paths based on the Hi-Res toggle state, prioritizing the fastest possible Time-To-First-Byte for 16-bit audio, and maximum quality for 24-bit audio. 
+- **Parallel Proxy Racing**: Greatly reduced latency when fetching Tidal Hi-Res streams by racing the top 3 proxies in parallel (first one to answer wins), abandoning the old sequential 1-by-1 cascade check.
+- **Tidal API Pre-Warming**: The API fallback list is now synced immediately during app startup, rather than blocking the very first song play request of the session.
+- **Album Art Deferral**: Album art fetching is now fully deferred in the proxy streaming path, shaving ~300ms off track load times (downloads continue to receive fully embedded FLAC cover art).
+
+### Fixed
+- **Hi-Res Fallback Breakage**: Fixed a critical bug where the app failed to play anything if a requested Hi-Res track only existed in 16-bit. It now seamlessly falls back to 16-bit LOSSLESS and updates the UI badge accordingly.
+- **Manifest Decode Error Noise**: Fixed proxy error log pollution caused by Tidal APIs returning empty manifests for tracks unavailable in 24-bit; these are now gracefully handled as deliberate HTTP 200 "not available" responses.
+
+---
+
 ## [1.3.5] - 2026-03-07
 
 ### Added

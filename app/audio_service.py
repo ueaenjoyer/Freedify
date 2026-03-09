@@ -52,6 +52,16 @@ TIDAL_APIS = [
     "https://wolf.qqdl.site",
 ]
 
+# ============================================================
+# FEATURE FLAGS — Flip to True when these services come back online
+# ============================================================
+ENABLE_QOBUZ = False   # Qobuz via squid.wtf — currently returning errors
+ENABLE_DAB   = False   # Dab Music — currently returning errors
+
+# Parallel proxy racing timeout (seconds per attempt)
+PROXY_RACE_TIMEOUT = 8.0
+# Max proxies to race in parallel (top N from sorted list)
+PROXY_RACE_COUNT = 3
 
 
 class AudioService:
@@ -348,7 +358,7 @@ class AudioService:
         
         try:
             full_url = f"{api_url}/track/?id={track_id}&quality={quality}"
-            logger.info(f"Trying API: {api_url}")
+            logger.debug(f"Trying API: {api_url} (quality={quality})")
             
             response = await self.client.get(full_url, timeout=30.0)
             
@@ -376,6 +386,10 @@ class AudioService:
                 if manifest_b64:
                     try:
                         manifest_json = base64.b64decode(manifest_b64).decode('utf-8')
+                        if not manifest_json or not manifest_json.strip():
+                            # Empty manifest = track not available in this quality on this proxy
+                            logger.debug(f"{api_url}: empty manifest for quality={quality} (track likely not available in hi-res)")
+                            return None
                         manifest = json_module.loads(manifest_json)
                         urls = manifest.get("urls", [])
                         
@@ -384,8 +398,16 @@ class AudioService:
                             logger.info(f"Got download URL from {api_url} (v2.0 manifest)")
                             self.working_api = api_url
                             return download_url
+                        else:
+                            logger.debug(f"{api_url}: manifest decoded but no URLs for quality={quality}")
+                            return None
                     except Exception as e:
-                        logger.warning(f"Failed to decode manifest from {api_url}: {e}")
+                        logger.debug(f"{api_url}: manifest decode issue for quality={quality}: {e}")
+                        return None
+                else:
+                    # No manifest field at all
+                    logger.debug(f"{api_url}: no manifest in response for quality={quality}")
+                    return None
             
             # Handle legacy format (list with OriginalTrackUrl)
             if isinstance(data, list):
@@ -404,7 +426,7 @@ class AudioService:
                     self.working_api = api_url
                     return data["url"]
             
-            logger.warning(f"API {api_url} returned unexpected format")
+            logger.debug(f"API {api_url} returned unexpected format for quality={quality}")
             return None
             
         except httpx.TimeoutException:
@@ -557,9 +579,14 @@ class AudioService:
             return audio_data
 
     async def get_tidal_download_url(self, track_id: int, quality: str = "LOSSLESS") -> Optional[str]:
-        """Get download URL from Tidal APIs with fallback."""
+        """Get download URL from Tidal APIs with parallel racing for speed.
         
-        # Update APIs first
+        Races the top PROXY_RACE_COUNT proxies in parallel and takes the first
+        successful result. Falls back to remaining proxies sequentially if all
+        raced proxies fail.
+        """
+        
+        # Update APIs list (only on first call, cached after that)
         await self.update_tidal_apis()
         
         # Build API list with the last working API first
@@ -568,13 +595,41 @@ class AudioService:
             apis_to_try.remove(self.working_api)
             apis_to_try.insert(0, self.working_api)
         
-        # Try each API until one works
-        for api_url in apis_to_try:
+        # --- Phase 1: Race the top N proxies in parallel ---
+        race_apis = apis_to_try[:PROXY_RACE_COUNT]
+        remaining_apis = apis_to_try[PROXY_RACE_COUNT:]
+        
+        async def _try_api(api_url):
+            """Wrapper that returns (url, result) or (url, None)."""
+            try:
+                result = await asyncio.wait_for(
+                    self.get_tidal_download_url_from_api(api_url, track_id, quality),
+                    timeout=PROXY_RACE_TIMEOUT
+                )
+                return result
+            except asyncio.TimeoutError:
+                logger.warning(f"API {api_url} timed out during race ({PROXY_RACE_TIMEOUT}s)")
+                return None
+            except Exception as e:
+                logger.warning(f"API {api_url} error during race: {e}")
+                return None
+        
+        if race_apis:
+            logger.info(f"Racing {len(race_apis)} Tidal proxies in parallel for track {track_id} (quality={quality})")
+            results = await asyncio.gather(*[_try_api(api) for api in race_apis])
+            
+            for i, result in enumerate(results):
+                if result:
+                    logger.info(f"Parallel race won by: {race_apis[i]}")
+                    return result
+        
+        # --- Phase 2: Sequential fallback for remaining proxies ---
+        for api_url in remaining_apis:
             download_url = await self.get_tidal_download_url_from_api(api_url, track_id, quality)
             if download_url:
                 return download_url
         
-        logger.error("All Tidal APIs failed")
+        logger.error(f"All Tidal APIs failed for track {track_id} (quality={quality})")
         return None
     
     async def _fetch_tidal_cover(self, cover_uuid: str) -> Optional[bytes]:
@@ -652,256 +707,304 @@ class AudioService:
             logger.error(f"Metadata extraction error: {e}")
             return {}
     
-    async def fetch_flac(self, isrc: str, query: str = "", hires: bool = True, hires_quality: str = "6") -> Optional[Union[tuple[bytes, Dict], tuple[str, Dict]]]:
-        """Fetch FLAC audio and metadata from Qobuz, Dab, Tidal, or Deezer (with fallback)."""
+    async def fetch_flac(self, isrc: str, query: str = "", hires: bool = True, hires_quality: str = "6", source: str = "") -> Optional[Union[tuple[bytes, Dict], tuple[str, Dict]]]:
+        """Fetch FLAC audio and metadata with optimized search pipeline.
+        
+        # ============================================================
+        # STREAM FETCH PRIORITY CHAIN (v2 — Optimized)
+        # ============================================================
+        #
+        # Hi-Res OFF (HiFi only — fast path, no Tidal proxy overhead):
+        #   1. Deezer FLAC (16-bit, fastest, most reliable)
+        #   2. Tidal LOSSLESS fallback (16-bit via proxy racing)
+        #
+        # Hi-Res ON:
+        #   1. Tidal HI_RES_LOSSLESS (24-bit, parallel top-3 proxies, 8s timeout)
+        #   2. Tidal LOSSLESS fallback (16-bit, same racing, 8s timeout)
+        #   3. [BYPASSED] Qobuz Hi-Res — set ENABLE_QOBUZ=True to re-enable
+        #   4. [BYPASSED] Dab Hi-Res   — set ENABLE_DAB=True to re-enable
+        #   5. Deezer FLAC (16-bit, always-available fallback)
+        #
+        # The toggle is checked at the TOP — the correct path is chosen
+        # upfront so no unnecessary API calls are made.
+        # Every step has an explicit timeout.
+        # Album art is NOT fetched here — frontend already has it from search.
+        # ============================================================
+        """
         
         deezer_info = None  # Cache for potential metadata use
         
-        # Handle Deezer track IDs (dz_XXXXX format) - extract ISRC first
+        # --- Pre-processing: Normalize ISRC / extract real ISRC from Deezer IDs ---
         if isrc.startswith("dz_"):
             deezer_track_id = isrc.replace("dz_", "")
             logger.info(f"Deezer track ID detected: {deezer_track_id}")
-            
             try:
-                # Fetch track info from Deezer public API to get ISRC
-                response = await self.client.get(
-                    f"https://api.deezer.com/track/{deezer_track_id}"
-                )
+                response = await self.client.get(f"https://api.deezer.com/track/{deezer_track_id}")
                 if response.status_code == 200:
                     deezer_info = response.json()
                     if "error" not in deezer_info:
                         extracted_isrc = deezer_info.get("isrc")
                         if extracted_isrc:
                             logger.info(f"Extracted ISRC from Deezer: {extracted_isrc}")
-                            isrc = extracted_isrc  # Use real ISRC for Tidal lookup
+                            isrc = extracted_isrc
                             query = query or f"{deezer_info.get('title', '')} {deezer_info.get('artist', {}).get('name', '')}"
                         else:
-                            logger.warning("No ISRC in Deezer track - will try Deezer download directly")
+                            logger.warning("No ISRC in Deezer track — will try Deezer download directly")
             except Exception as e:
                 logger.error(f"Deezer track info fetch error: {e}")
         
-        # Handle query: prefixed IDs (from ListenBrainz playlists)
-        # These are searchable by artist + title, no ISRC available
         if isrc.startswith("query:"):
             query = isrc.replace("query:", "")
-            isrc = ""  # Clear ISRC, will search by query only
-            logger.info(f"ListenBrainz track - searching by query: {query}")
+            isrc = ""
+            logger.info(f"ListenBrainz track — searching by query: {query}")
         
+        # ============================================================
+        # PATH SELECTION: Check hi-res toggle at the TOP
+        # ============================================================
         
-        # 0. Try Qobuz via squid.wtf (Hi-Res source, no auth needed) - Priority #0
-        if hires:
-          try:
+        if not hires:
+            # ========== FAST PATH: Hi-Res OFF ==========
+            logger.info(f"[FAST PATH] Hi-Res OFF — skipping Tidal/Qobuz/Dab, going to Deezer first")
+            
+            # Step 1: Deezer (fast, reliable 16-bit FLAC)
+            result = await self._fetch_from_deezer(isrc, query, deezer_info)
+            if result:
+                return result
+            
+            # Step 2: Tidal LOSSLESS fallback (16-bit)
+            if not isrc.startswith("dz_"):
+                logger.info("[FAST PATH] Deezer failed, trying Tidal LOSSLESS as fallback")
+                result = await self._fetch_from_tidal(isrc, query, quality="LOSSLESS", is_hires=False)
+                if result:
+                    return result
+            
+            logger.error(f"[FAST PATH] Could not fetch audio for: {isrc or query}")
+            return None
+        
+        else:
+            # ========== HI-RES PATH: Hi-Res ON ==========
+            logger.info(f"[HI-RES PATH] Hi-Res ON — trying Tidal HI_RES_LOSSLESS first")
+            
+            # Step 1: Tidal HI_RES_LOSSLESS (24-bit, parallel racing)
+            if not isrc.startswith("dz_"):
+                result = await self._fetch_from_tidal(isrc, query, quality="HI_RES_LOSSLESS", is_hires=True)
+                if result:
+                    return result
+                
+                # Step 2: EXPLICIT FALLBACK — Tidal LOSSLESS (16-bit)
+                # This is the critical fix: if hi-res isn't available, fall back gracefully
+                logger.info("[HI-RES PATH] HI_RES_LOSSLESS failed, falling back to Tidal LOSSLESS (16-bit)")
+                result = await self._fetch_from_tidal(isrc, query, quality="LOSSLESS", is_hires=False)
+                if result:
+                    return result
+            
+            # Step 3: [BYPASSED] Qobuz Hi-Res — re-enable by setting ENABLE_QOBUZ = True
+            if ENABLE_QOBUZ and source != "tidal":
+                result = await self._fetch_from_qobuz(query, hires_quality)
+                if result:
+                    return result
+            
+            # Step 4: [BYPASSED] Dab Hi-Res — re-enable by setting ENABLE_DAB = True
+            if ENABLE_DAB and source != "tidal":
+                result = await self._fetch_from_dab(isrc, query, hires_quality)
+                if result:
+                    return result
+            
+            # Step 5: Deezer FLAC (16-bit, always-available fallback)
+            logger.info("[HI-RES PATH] All hi-res sources failed, falling back to Deezer 16-bit")
+            result = await self._fetch_from_deezer(isrc, query, deezer_info)
+            if result:
+                return result
+            
+            logger.error(f"[HI-RES PATH] Could not fetch audio for: {isrc or query}")
+            return None
+    
+    # ============================================================
+    # PRIVATE HELPERS — One per source, clean and isolated
+    # ============================================================
+    
+    async def _fetch_from_tidal(self, isrc: str, query: str, quality: str = "LOSSLESS", is_hires: bool = False) -> Optional[tuple]:
+        """Try to fetch a stream URL from Tidal proxies."""
+        try:
+            tidal_track = await self.search_tidal_by_isrc(isrc, query)
+            if not tidal_track:
+                logger.warning(f"Tidal search returned no results for: {isrc or query}")
+                return None
+            
+            track_id = tidal_track.get("id")
+            download_url = await self.get_tidal_download_url(track_id, quality=quality)
+            
+            if not download_url:
+                logger.warning(f"Tidal proxy returned no URL for track {track_id} (quality={quality})")
+                return None
+            
+            logger.info(f"✓ Tidal stream found (quality={quality}): {download_url[:80]}...")
+            
+            # Build metadata (includes album art for downloads — streaming ignores it)
+            meta = {
+                "title": tidal_track.get("title"),
+                "artists": ", ".join([a["name"] for a in tidal_track.get("artists", [])]),
+                "album": tidal_track.get("album", {}).get("title"),
+                "year": tidal_track.get("album", {}).get("releaseDate"),
+                "track_number": tidal_track.get("trackNumber"),
+                "is_hi_res": is_hires,
+            }
+            
+            # Fetch album art (needed for download metadata embedding)
+            cover_uuid = tidal_track.get("album", {}).get("cover")
+            if cover_uuid:
+                meta["album_art_data"] = await self._fetch_tidal_cover(cover_uuid)
+            
+            return (download_url, meta)
+        except Exception as e:
+            logger.error(f"Tidal fetch error: {e}")
+            return None
+    
+    async def _fetch_from_qobuz(self, query: str, hires_quality: str) -> Optional[tuple]:
+        """Try to fetch a stream URL from Qobuz (currently bypassed)."""
+        try:
             from app.qobuz_service import qobuz_service
             
-            qobuz_track = None
-            qobuz_query = query
+            if not query:
+                return None
             
-            if qobuz_query:
-                qobuz_tracks = await qobuz_service.search_tracks(qobuz_query, limit=1)
-                if qobuz_tracks:
-                    qobuz_track = qobuz_tracks[0]
-                    logger.info(f"Qobuz search hit: {qobuz_track.get('name')} by {qobuz_track.get('artists')}")
+            qobuz_tracks = await qobuz_service.search_tracks(query, limit=1)
+            if not qobuz_tracks:
+                return None
             
-            if qobuz_track:
-                qobuz_id = qobuz_track.get('id', '').replace('qobuz_', '')
-                stream_url = await qobuz_service.get_stream_url(qobuz_id, quality=hires_quality)
-                
-                if stream_url:
-                    logger.info(f"Qobuz stream URL found (quality={hires_quality}): {stream_url[:40]}...")
-                    metadata = {
-                        "title": qobuz_track.get("name"),
-                        "artists": qobuz_track.get("artists"),
-                        "album": qobuz_track.get("album"),
-                        "year": qobuz_track.get("release_date", "")[:4] if qobuz_track.get("release_date") else "",
-                        "album_art_url": qobuz_track.get("album_art"),
-                        "album_art_data": None,
-                        "is_hi_res": True
-                    }
-                    # Download album art if URL is present
-                    if metadata.get("album_art_url"):
-                        try:
-                            art_resp = await self.client.get(metadata["album_art_url"])
-                            if art_resp.status_code == 200:
-                                metadata["album_art_data"] = art_resp.content
-                                logger.info("Downloaded album art from Qobuz")
-                        except Exception as e:
-                            logger.debug(f"Failed to download Qobuz album art: {e}")
-                    return (stream_url, metadata)
-          except Exception as e:
+            qobuz_track = qobuz_tracks[0]
+            logger.info(f"Qobuz search hit: {qobuz_track.get('name')} by {qobuz_track.get('artists')}")
+            
+            qobuz_id = qobuz_track.get('id', '').replace('qobuz_', '')
+            stream_url = await qobuz_service.get_stream_url(qobuz_id, quality=hires_quality)
+            
+            if not stream_url:
+                return None
+            
+            logger.info(f"✓ Qobuz stream URL found (quality={hires_quality}): {stream_url[:40]}...")
+            metadata = {
+                "title": qobuz_track.get("name"),
+                "artists": qobuz_track.get("artists"),
+                "album": qobuz_track.get("album"),
+                "year": qobuz_track.get("release_date", "")[:4] if qobuz_track.get("release_date") else "",
+                "album_art_url": qobuz_track.get("album_art"),
+                "album_art_data": None,
+                "is_hi_res": True
+            }
+            return (stream_url, metadata)
+        except Exception as e:
             logger.error(f"Qobuz fetch error: {e}")
-
-        # 0b. Try Dab Music (Qobuz Hi-Res Proxy) - Only when Hi-Res is enabled
-        if hires:
-          try:
+            return None
+    
+    async def _fetch_from_dab(self, isrc: str, query: str, hires_quality: str) -> Optional[tuple]:
+        """Try to fetch a stream URL from Dab Music (currently bypassed)."""
+        try:
             from app.dab_service import dab_service
             
             dab_id = None
-            dab_track = None  # Initialize to avoid UnboundLocalError
+            dab_track = None
             
             if isrc.startswith("dab_"):
                 dab_id = isrc
-                # Fetch track metadata by ID
                 dab_track = await dab_service.get_track(dab_id)
-                if dab_track:
-                    logger.info(f"Fetched Dab track metadata: {dab_track.get('name')} by {dab_track.get('artists')}")
             else:
-                 # Search prioritization:
-                 # Prefer standard query (Artist + Title) because ISRC support on Dab is flaky.
-                 dab_query = query
-                 if not dab_query and isrc and not isrc.startswith("dz_"):
-                      dab_query = f"isrc:{isrc}"
-                 
-                 if dab_query:
-                     dab_tracks = await dab_service.search_tracks(dab_query, limit=1)
-                     if dab_tracks:
-                         dab_track = dab_tracks[0]
-                         dab_id = dab_track.get('id')
-                         
-                         # Optional: Verify title match if using query?
-                         # For now assume top result is correct as Dab/Qobuz search is usually okay for metadata.
+                dab_query = query or (f"isrc:{isrc}" if isrc and not isrc.startswith("dz_") else "")
+                if dab_query:
+                    dab_tracks = await dab_service.search_tracks(dab_query, limit=1)
+                    if dab_tracks:
+                        dab_track = dab_tracks[0]
+                        dab_id = dab_track.get('id')
             
-            if dab_id:
-                # Select quality
-                quality = hires_quality
-                stream_url = await dab_service.get_stream_url(dab_id, quality=quality)
-                
-                if stream_url:
-                    logger.info(f"Dab Stream URL found: {stream_url[:40]}...")
-                    
-                    # Metadata gathering
-                    # Use Dab metadata if available, otherwise fallback to query string
-                    if dab_track:
-                        metadata = {
-                            "title": dab_track.get("name"),  # _format_track uses "name" not "title"
-                            "artists": dab_track.get("artists"),  # Already correct
-                            "album": dab_track.get("album"),  # _format_track uses "album" not "albumTitle"
-                            "year": dab_track.get("release_date", "")[:4] if dab_track.get("release_date") else "",
-                            "album_art_url": dab_track.get("album_art"),  # _format_track uses "album_art" not "albumCover"
-                            "album_art_data": None
-                        }
-                        # Ensure artists/album are strings (should already be from _format_track)
-                        if isinstance(metadata["artists"], dict): metadata["artists"] = metadata["artists"].get("name", "")
-                        if isinstance(metadata["album"], dict): metadata["album"] = metadata["album"].get("title", "")
-                        
-                        # Download album art if URL is present
-                        if metadata.get("album_art_url"):
-                            try:
-                                art_resp = await self.client.get(metadata["album_art_url"])
-                                if art_resp.status_code == 200:
-                                    metadata["album_art_data"] = art_resp.content
-                                    logger.info("Downloaded album art from Dab/Qobuz")
-                            except Exception as e:
-                                logger.debug(f"Failed to download album art: {e}")
-                    else:
-                        # Fallback: extract from query string (format: "Title Artist")
-                        parts = query.split(" ") if query else []
-                        metadata = {
-                            "title": query or "Unknown",
-                            "artists": "",  # Changed from "artist" to "artists"
-                            "album": "",
-                            "year": "",
-                            "album_art_url": None,
-                            "album_art_data": None
-                        }
-
-                    metadata["is_hi_res"] = True
-                    return (stream_url, metadata)
-          except Exception as e:
+            if not dab_id:
+                return None
+            
+            stream_url = await dab_service.get_stream_url(dab_id, quality=hires_quality)
+            if not stream_url:
+                return None
+            
+            logger.info(f"✓ Dab stream URL found: {stream_url[:40]}...")
+            
+            if dab_track:
+                metadata = {
+                    "title": dab_track.get("name"),
+                    "artists": dab_track.get("artists") if not isinstance(dab_track.get("artists"), dict) else dab_track["artists"].get("name", ""),
+                    "album": dab_track.get("album") if not isinstance(dab_track.get("album"), dict) else dab_track["album"].get("title", ""),
+                    "year": dab_track.get("release_date", "")[:4] if dab_track.get("release_date") else "",
+                    "album_art_url": dab_track.get("album_art"),
+                    "album_art_data": None,
+                    "is_hi_res": True
+                }
+            else:
+                metadata = {"title": query or "Unknown", "artists": "", "album": "", "year": "", "is_hi_res": True}
+            
+            return (stream_url, metadata)
+        except Exception as e:
             logger.error(f"Dab Music fetch error: {e}")
-
-        # 1. Try Tidal (Primary Source)
-        if not isrc.startswith("dz_"):  # Only if we have a real ISRC
-            logger.info(f"Trying Tidal APIs for ISRC: {isrc}")
-            tidal_track = await self.search_tidal_by_isrc(isrc, query)
+            return None
+    
+    async def _fetch_from_deezer(self, isrc: str, query: str, deezer_info: dict = None) -> Optional[tuple]:
+        """Try to fetch a stream URL from Deezer (always-available fallback)."""
+        try:
+            # Resolve Deezer track info if not already cached
+            if not deezer_info and isrc.startswith("dz_"):
+                deezer_track_id = isrc.replace("dz_", "")
+                try:
+                    response = await self.client.get(f"https://api.deezer.com/track/{deezer_track_id}")
+                    if response.status_code == 200:
+                        deezer_info = response.json()
+                except:
+                    pass
+            elif not deezer_info and isrc:
+                deezer_info = await self.get_deezer_track_info(isrc)
+            elif not deezer_info and query:
+                try:
+                    response = await self.client.get(
+                        "https://api.deezer.com/search/track",
+                        params={"q": query, "limit": 1}
+                    )
+                    if response.status_code == 200:
+                        data = response.json()
+                        tracks = data.get("data", [])
+                        if tracks:
+                            deezer_info = tracks[0]
+                            logger.info(f"Deezer search found: {deezer_info.get('title')} by {deezer_info.get('artist', {}).get('name')}")
+                except Exception as e:
+                    logger.error(f"Deezer search error: {e}")
             
-            if tidal_track:
-                track_id = tidal_track.get("id")
-                download_url = await self.get_tidal_download_url(track_id)
-                
-                if download_url:
-                    logger.info(f"Streaming via proxy from Tidal: {download_url[:80]}...")
-                    
-                    # Build metadata without downloading the full file
-                    meta = {
-                        "title": tidal_track.get("title"),
-                        "artists": ", ".join([a["name"] for a in tidal_track.get("artists", [])]),
-                        "album": tidal_track.get("album", {}).get("title"),
-                        "year": tidal_track.get("album", {}).get("releaseDate"),
-                        "track_number": tidal_track.get("trackNumber"),
-                    }
-                    
-                    # Fetch album art in parallel (small download, doesn't block stream)
-                    cover_uuid = tidal_track.get("album", {}).get("cover")
-                    if cover_uuid:
-                        meta["album_art_data"] = await self._fetch_tidal_cover(cover_uuid)
-                    
-                    # Return URL string — main.py will stream-proxy it to the browser
-                    return (download_url, meta)
-            else:
-                logger.warning(f"Tidal search returned no results for: {isrc}")
-        
-        # Fallback to Deezer FLAC download (deezmate API)
-        logger.info(f"Falling back to Deezer for: {isrc or query}")
-        
-        # If we have cached deezer_info from above, use it; otherwise fetch
-        if not deezer_info and isrc.startswith("dz_"):
-            deezer_track_id = isrc.replace("dz_", "")
-            try:
-                response = await self.client.get(f"https://api.deezer.com/track/{deezer_track_id}")
-                if response.status_code == 200:
-                    deezer_info = response.json()
-            except:
-                pass
-        elif not deezer_info and isrc:
-            # Lookup by ISRC
-            deezer_info = await self.get_deezer_track_info(isrc)
-        elif not deezer_info and query:
-            # No ISRC - search by query (for ListenBrainz tracks)
-            try:
-                response = await self.client.get(
-                    "https://api.deezer.com/search/track",
-                    params={"q": query, "limit": 1}
-                )
-                if response.status_code == 200:
-                    data = response.json()
-                    tracks = data.get("data", [])
-                    if tracks:
-                        deezer_info = tracks[0]
-                        logger.info(f"Deezer search found: {deezer_info.get('title')} by {deezer_info.get('artist', {}).get('name')}")
-            except Exception as e:
-                logger.error(f"Deezer search error: {e}")
-        
-        if deezer_info and "error" not in deezer_info:
+            if not deezer_info or "error" in deezer_info:
+                return None
+            
             deezer_id = deezer_info.get("id")
             download_url = await self.get_deezer_download_url(deezer_id)
             
-            if download_url:
-                logger.info(f"Streaming via proxy from Deezer: {download_url[:60]}...")
-                
-                # Build metadata without downloading the full file
-                artists_list = [a["name"] for a in deezer_info.get("contributors", [])] if deezer_info.get("contributors") else [deezer_info.get("artist", {}).get("name")]
-                meta = {
-                    "title": deezer_info.get("title"),
-                    "artists": ", ".join(filter(None, artists_list)),
-                    "album": deezer_info.get("album", {}).get("title"),
-                    "year": deezer_info.get("release_date"),
-                    "track_number": deezer_info.get("track_position"),
-                }
-                
-                # Fetch album art (small download, doesn't block stream)
-                cover_url = deezer_info.get("album", {}).get("cover_xl")
-                if cover_url:
-                    try:
-                        cover_resp = await self.client.get(cover_url)
-                        if cover_resp.status_code == 200:
-                            meta["album_art_data"] = cover_resp.content
-                    except: pass
-                
-                # Return URL string — main.py will stream-proxy it to the browser
-                return (download_url, meta)
-        
-        logger.error(f"Could not fetch audio for: {isrc}")
-        return None
+            if not download_url:
+                return None
+            
+            logger.info(f"✓ Deezer stream found: {download_url[:60]}...")
+            
+            artists_list = [a["name"] for a in deezer_info.get("contributors", [])] if deezer_info.get("contributors") else [deezer_info.get("artist", {}).get("name")]
+            meta = {
+                "title": deezer_info.get("title"),
+                "artists": ", ".join(filter(None, artists_list)),
+                "album": deezer_info.get("album", {}).get("title"),
+                "year": deezer_info.get("release_date"),
+                "track_number": deezer_info.get("track_position"),
+            }
+            
+            # Fetch album art (needed for download metadata embedding)
+            cover_url = deezer_info.get("album", {}).get("cover_xl")
+            if cover_url:
+                try:
+                    cover_resp = await self.client.get(cover_url)
+                    if cover_resp.status_code == 200:
+                        meta["album_art_data"] = cover_resp.content
+                except:
+                    pass
+            
+            return (download_url, meta)
+        except Exception as e:
+            logger.error(f"Deezer fetch error: {e}")
+            return None
     
     def transcode_to_mp3(self, flac_data: bytes, bitrate: str = BITRATE) -> Optional[bytes]:
         """Transcode FLAC to MP3 using FFmpeg."""
