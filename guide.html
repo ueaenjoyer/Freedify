@@ -161,10 +161,50 @@
             </ol>
         </div>
 
-        <!-- Option: Termux (Android) -->
+
+
+        <!-- Option 2: Railway -->
         <div class="card">
-            <h2>📱 Termux (Android)</h2>
-            <p><strong>Best for:</strong> Running directly on your Android phone/tablet.</p>
+            <h2>🚂 Option 2: Railway (Premium Cloud Host)</h2>
+            <p><strong>Best for:</strong> Faster spin-up times than free tiers.</p>
+            <div class="note">
+                <strong>✨ Plug and Play:</strong> We added auto-configuration so you don't need to mess with settings!
+            </div>
+
+            <h3>Steps</h3>
+            <ol>
+                <li><strong>Fork</strong> the Freedify repository to your GitHub.</li>
+                <li>Log in to <a href="https://railway.app" target="_blank">Railway.app</a>.</li>
+                <li>Click <strong>+ New Project</strong> → <strong>Deploy from GitHub repo</strong>.</li>
+                <li>Select your forked repo and click <strong>Deploy Now</strong>.</li>
+                <li>Wait for initialization, then go to <strong>Settings → Networking</strong> to get your public URL.</li>
+            </ol>
+        </div>
+
+        <!-- Option 3: Render -->
+        <div class="card">
+            <h2>☁️ Option 3: Render (Free Tier Alternative)</h2>
+            <p><strong>Best for:</strong> Free hosting. Fully supports our new Tidal Hi-Res streaming proxy mesh.</p>
+
+            <h3>Steps</h3>
+            <ol>
+                <li><strong>Fork</strong> the repo to your GitHub.</li>
+                <li>Sign up for <a href="https://render.com" target="_blank">Render.com</a>.</li>
+                <li>Click <strong>New +</strong> → <strong>Web Service</strong> → Select your fork.</li>
+                <li>Configure:
+                    <ul>
+                        <li><strong>Build Command:</strong> <code>pip install -r app/requirements.txt</code></li>
+                        <li><strong>Start Command:</strong> <code>python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT</code></li>
+                    </ul>
+                </li>
+                <li>Click <strong>Create Web Service</strong>.</li>
+            </ol>
+        </div>
+
+        <!-- Option 5: Termux (Android) -->
+        <div class="card">
+            <h2>📱 Option 5: Termux (Android)</h2>
+            <p><strong>Best for:</strong> Running directly on your Android phone/tablet without root.</p>
             
             <h3>Steps</h3>
             <ol>
@@ -188,47 +228,6 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000</code></pre>
             </div>
         </div>
 
-        <!-- Option 2: Railway -->
-        <div class="card">
-            <h2>🚂 Option 2: Railway (Recommended Cloud)</h2>
-            <p><strong>Best for:</strong> Mobile access, Hi-Res audio, zero maintenance.</p>
-            <div class="note">
-                <strong>✨ Plug and Play:</strong> We added auto-configuration so you don't need to mess with settings!
-            </div>
-
-            <h3>Steps</h3>
-            <ol>
-                <li><strong>Fork</strong> the Freedify repository to your GitHub.</li>
-                <li>Log in to <a href="https://railway.app" target="_blank">Railway.app</a>.</li>
-                <li>Click <strong>+ New Project</strong> → <strong>Deploy from GitHub repo</strong>.</li>
-                <li>Select your forked repo and click <strong>Deploy Now</strong>.</li>
-                <li>Wait for initialization, then go to <strong>Settings → Networking</strong> to get your public URL.</li>
-            </ol>
-        </div>
-
-        <!-- Option 3: Render -->
-        <div class="card">
-            <h2>☁️ Option 3: Render (Free Tier Alternative)</h2>
-            <p><strong>Best for:</strong> Free hosting, if you only need standard 16-bit FLAC.</p>
-            <div class="note" style="border-left-color: #ffcc00; background: rgba(255, 204, 0, 0.1);">
-                <strong>⚠️ Warning:</strong> Hi-Res (24-bit) audio often fails on Render due to IP blocking. You will get standard 16-bit CD quality.
-            </div>
-
-            <h3>Steps</h3>
-            <ol>
-                <li><strong>Fork</strong> the repo to your GitHub.</li>
-                <li>Sign up for <a href="https://render.com" target="_blank">Render.com</a>.</li>
-                <li>Click <strong>New +</strong> → <strong>Web Service</strong> → Select your fork.</li>
-                <li>Configure:
-                    <ul>
-                        <li><strong>Build Command:</strong> <code>pip install -r app/requirements.txt</code></li>
-                        <li><strong>Start Command:</strong> <code>python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT</code></li>
-                    </ul>
-                </li>
-                <li>Click <strong>Create Web Service</strong>.</li>
-            </ol>
-        </div>
-
         <!-- Secrets Section -->
         <div class="card">
             <h2>🔑 How to Find Your API Keys</h2>
@@ -249,16 +248,6 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000</code></pre>
                     <td><code>LISTENBRAINZ_TOKEN</code></td>
                     <td>Scrobbling (History)</td>
                     <td>Create account at <a href="https://listenbrainz.org/" target="_blank">ListenBrainz</a>. <strong>Check your email</strong> for the API Key after signing up.</td>
-                </tr>
-                <tr>
-                    <td><code>DAB_SESSION</code></td>
-                    <td>Hi-Res Audio (24-bit)</td>
-                    <td>Log in to <a href="https://dabmusic.xyz" target="_blank">Dab Music</a>. F12 → Application → Cookies → Copy 'session' value.</td>
-                </tr>
-                <tr>
-                    <td><code>DAB_VISITOR_ID</code></td>
-                    <td>Hi-Res Audio (Required)</td>
-                    <td>Same as above. Copy 'visitor_id' value from cookies.</td>
                 </tr>
                 <tr>
                     <td><code>GOOGLE_CLIENT_ID</code></td>

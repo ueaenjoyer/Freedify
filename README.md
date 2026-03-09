@@ -1,6 +1,8 @@
 # Freedify - Music Streaming Web App
 
-*Last updated: March 7, 2026*
+```markdown
+*Last updated: March 9, 2026*
+```
 
 Stream music and podcasts from anywhere. **Generate smart playlists with AI**, search songs, albums, artists, podcasts or paste URLs from Spotify, SoundCloud, Bandcamp, Archive.org, Phish.in, and more.
 
@@ -25,7 +27,7 @@ Open [http://localhost:8000](http://localhost:8000) and start streaming! 🎵
 
 ### 🎧 HiFi & Hi-Res Streaming
 - **Lossless FLAC** - Direct 16-bit FLAC streaming from Tidal (HiFi)
-- **Hi-Res Audio** - **24-bit/96kHz** support powered by **Dab Music** (Qobuz Proxy)
+- **Hi-Res Audio** - True **24-bit/192kHz** support powered by multiple Tidal proxy APIs
 - **Hi-Res Mode Toggle** - Click the HiFi button to switch between:
   - **Hi-Res Mode** (Cyan) - Prioritizes 24-bit lossless when available
   - **HiFi Mode** (Green) - Standard 16-bit lossless streaming
@@ -147,6 +149,7 @@ Open [http://localhost:8000](http://localhost:8000) and start streaming! 🎵
 - **Queue & Download** - Episodes seamlessly integrate with the player queue and can be downloaded
 
 ### 📚 Audiobooks
+- **Important Note:** Streaming audiobooks currently **requires a Premiumize.me account** for caching the torrents. If you use Real-Debrid, All-Debrid, or another service, we invite you to fork Freedify and submit a PR to add support for your preferred debrid service (as we currently lack accounts to test them with)!
 - **My Books** - Audiobook bookshelf to save, organize, and resume your audiobooks
 - **AudiobookBay Search** - Search and download audiobooks via AudiobookBay + Premiumize integration
 - **Book Info Modal** - Click any book for cover art, description, chapters, and play/resume controls
@@ -297,13 +300,17 @@ To enable **Google Drive Sync** and **AI features (Smart Playlist, AI Radio, DJ 
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Deployment Guide
+Below are the 5 main ways to deploy Freedify, ordered by preference.
+
+### 1. 💻 Localhost (Your Computer)
+Best for: Fastest performance, testing, and zero cost.
 
 ```bash
 # Install dependencies
 pip install -r app/requirements.txt
 
-# Install FFmpeg (required)
+# Install FFmpeg (required for transcoding podcasts/lossy audio)
 # Windows: winget install ffmpeg
 # macOS: brew install ffmpeg
 # Linux: apt install ffmpeg
@@ -311,14 +318,54 @@ pip install -r app/requirements.txt
 # Run the server
 python -m uvicorn app.main:app --port 8000
 ```
-
 Open http://localhost:8000
 
 ---
 
-## 📱 Running on Termux (Android)
+### 2. 🐳 Docker (Recommended for NAS/Local Servers)
+Best for: Always-on home servers, Raspberry Pi, unRAID, or running Freedify cleanly in an isolated container.
 
-Freedify can run directly on Android using [Termux](https://termux.dev/):
+1. **Install Docker** on your machine.
+2. **Clone the repo:**
+   ```bash
+   git clone https://github.com/BioHapHazard/Freedify
+   cd Freedify
+   ```
+3. **Configure:** Open `docker-compose.yml` and add your optional keys (ListenBrainz, Ticketmaster, etc.) in the `environment` section.
+4. **Start the server:**
+   ```bash
+   docker compose up -d
+   ```
+5. **Access:** Open http://localhost:8000 in your browser.
+
+---
+
+### 3. ☁️ Render (Recommended Free Cloud Host)
+Best for: Running a 24/7 public instance of Freedify for yourself with zero costs. Render fully supports our new Tidal Hi-Res API proxy mesh.
+
+1. Fork/push this repo to your own GitHub account.
+2. Go to [render.com](https://render.com) → New Web Service.
+3. Connect your GitHub repo.
+4. Render auto-detects `render.yaml`.
+5. Click **Deploy**.
+
+---
+
+### 4. 🚂 Railway (Premium Cloud Host)
+Best for: Running a 24/7 public instance of Freedify if you're willing to pay a few dollars a month for slightly faster spin-up times than Render's free tier.
+
+1. Go to [railway.app](https://railway.app) → New Project
+2. Deploy from GitHub repo
+3. Add environment variables (see below)
+4. Go to Settings → Networking → Generate Domain
+5. Your app will be live at `your-app.up.railway.app`
+
+> **Pricing:** Railway offers a 30-day trial with $5 credit. After that, the Hobby plan is **$5/month**. 
+
+---
+
+### 5. 📱 Termux (Android Native Environment)
+Freedify can run directly on an Android device without rooting, using [Termux](https://termux.dev/):
 
 1. Install [Termux](https://termux.dev/) from F-Droid
 2. Install system dependencies:
@@ -340,50 +387,6 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 *(Tip: On Termux, the cache defaults to `~/.freedify_cache` to avoid permission errors. To update in the future, just run `git pull --rebase --autostash` inside the folder)*
 
-
-## 🐳 Self-Hosting with Docker (Recommended for NAS/Local Servers)
-
-1. **Install Docker** on your machine.
-2. **Clone the repo:**
-   ```bash
-   git clone https://github.com/BioHapHazard/Freedify
-   cd Freedify
-   ```
-3. **Configure:** Open `docker-compose.yml` and add your optional keys (Dab Music, ListenBrainz, etc.) in the `environment` section.
-4. **Start the server:**
-   ```bash
-   docker compose up -d
-   ```
-5. **Access:** Open http://localhost:8000 in your browser.
-
----
-
-## 🌐 Deploy to Railway (Recommended for Mobile + Hi-Res)
-
-**Railway is recommended** for mobile users who want Hi-Res (24-bit) streaming. Docker self-hosting is great for local networks, but Railway gives you a public URL for accessing your music from anywhere.
-
-1. Go to [railway.app](https://railway.app) → New Project
-2. Deploy from GitHub repo
-3. Add environment variables (see below)
-4. Go to Settings → Networking → Generate Domain
-5. Your app will be live at `your-app.up.railway.app`
-
-> **Pricing:** Railway offers a 30-day trial with $5 credit. After that, the Hobby plan is **$5/month**. If you want free hosting (with 16-bit FLAC only), use Render instead.
-
----
-
-## 🌐 Deploy to Render (16-bit only)
-
-Render works but **Hi-Res (24-bit) streaming is not available** due to IP restrictions on Dab Music API. You'll still get 16-bit FLAC from Tidal.
-
-1. Fork/push this repo to GitHub
-2. Go to render.com → New Web Service
-3. Connect your GitHub repo
-4. Render auto-detects render.yaml
-5. Click Deploy
-
----
-
 ## ⚙️ Environment Variables (Deployment Secrets)
 
 When deploying to Render (or other hosts), set these in your Dashboard:
@@ -391,8 +394,6 @@ When deploying to Render (or other hosts), set these in your Dashboard:
 | Variable | Required? | Description |
 |----------|-----------|-------------|
 | `GEMINI_API_KEY` | **YES** | Required for AI Radio and DJ Tips |
-| `DAB_SESSION` | **YES** (for Hi-Res) | Dab Music session token for 24-bit streaming |
-| `DAB_VISITOR_ID` | **YES** (for Hi-Res) | Dab Music visitor ID |
 | `MP3_BITRATE` | No | Default: 320k |
 | `PORT` | No | Default: 8000 |
 
@@ -400,6 +401,7 @@ When deploying to Render (or other hosts), set these in your Dashboard:
 
 | Variable | Description |
 |----------|-------------|
+| `PREMIUMIZE_API_KEY` | **Required for Audiobooks** - Get at premiumize.me/account |
 | `PODCASTINDEX_KEY` | For Podcast Search (better results) |
 | `PODCASTINDEX_SECRET` | For Podcast Search (required if KEY is used) |
 | `SETLIST_FM_API_KEY` | For Setlist.fm concert search (free at setlist.fm/settings/api) |
@@ -409,20 +411,6 @@ When deploying to Render (or other hosts), set these in your Dashboard:
 | `GENIUS_ACCESS_TOKEN` | For Genius lyrics (get at genius.com/api-clients) |
 | `TICKETMASTER_API_KEY` | For Concert Search (free at developer.ticketmaster.com) |
 | `SEATGEEK_CLIENT_ID` | For Concert Search fallback (free at seatgeek.com/account/develop) |
-| `DAB_SESSION` | **Recommended** - For Hi-Res (24-bit) Audio (from Dab/Qobuz) |
-| `DAB_VISITOR_ID` | **Recommended** - For Hi-Res (24-bit) Audio (from Dab/Qobuz) |
-| `PREMIUMIZE_API_KEY` | For Audiobook streaming via Premiumize (get at premiumize.me/account) |
-
-### How to Get Dab Music Cookies (for Hi-Res Audio)
-
-1. Go to [dabmusic.xyz](https://dabmusic.xyz) and log in
-2. Open browser DevTools (F12 or Right-click → Inspect)
-3. Go to **Application** tab → **Cookies** → `https://dabmusic.xyz`
-4. Find and copy these values:
-   - `session` → Set as `DAB_SESSION`
-   - `visitor_id` → Set as `DAB_VISITOR_ID`
-
-> ⚠️ These cookies expire periodically. If Hi-Res stops working, repeat these steps to get fresh values.
 
 ---
 
@@ -533,7 +521,6 @@ Click a result to see the full setlist with song annotations, then click "Listen
 
 ## Credits
 Inspired by and built off of [Spotiflac](https://github.com/afkarxyz/Spotiflac) by afkarxyz.
-**Hi-Res Audio Source** provided by [Dab Music](https://dabmusic.xyz).
 
 ---
 

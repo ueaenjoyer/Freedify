@@ -891,6 +891,7 @@ body {
 .search-type-selector {
     display: flex;
     justify-content: center;
+    flex-wrap: wrap;
     gap: var(--spacing-sm);
     margin-top: var(--spacing-md);
     max-width: 600px;
