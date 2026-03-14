@@ -334,6 +334,23 @@ class AudioService:
                     "countryCode": "US"
                 }
             )
+            
+            # If token expired, invalidate and retry once
+            if response.status_code == 401:
+                logger.warning("Tidal token expired (401), refreshing...")
+                self.tidal_token = None
+                token = await self.get_tidal_token()
+                response = await self.client.get(
+                    "https://api.tidal.com/v1/search/tracks",
+                    headers={"Authorization": f"Bearer {token}"},
+                    params={
+                        "query": search_query,
+                        "limit": 25,
+                        "offset": 0,
+                        "countryCode": "US"
+                    }
+                )
+            
             response.raise_for_status()
             
             data = response.json()

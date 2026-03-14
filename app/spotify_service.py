@@ -975,7 +975,13 @@ class SpotifyService:
         """Get audio features (BPM, key, energy) for a single track.
         
         If track_id starts with 'dz_' (Deezer), will try ISRC or name/artist lookup first.
+        NOTE: Spotify deprecated /audio-features for non-partner apps in late 2024.
+        A circuit breaker disables further calls after the first 403.
         """
+        # Circuit breaker: if Spotify has already rejected us once, skip entirely
+        if getattr(self, '_audio_features_disabled', False):
+            return None
+        
         spotify_id = track_id
         
         # Handle Deezer tracks - need to find Spotify equivalent
@@ -996,9 +1002,10 @@ class SpotifyService:
             data = await self._api_request(f"/audio-features/{spotify_id}")
             return self._format_audio_features(data)
         except Exception as e:
-            # 403 Forbidden likely means token lacks permission (scraper token) or ID is invalid
+            # 403 Forbidden = endpoint deprecated for non-partner apps
             if "403" in str(e):
-                logger.warning(f"Spotify 403 Forbidden for {spotify_id} (token permissions?)")
+                logger.warning(f"Spotify /audio-features returned 403 — endpoint deprecated. Disabling further calls.")
+                self._audio_features_disabled = True
             else:
                 logger.error(f"Error fetching audio features for {spotify_id}: {e}")
             return None
