@@ -737,18 +737,24 @@ class SpotifyService:
             tracks.extend(embed_tracks)
             logger.info(f"Scraped {len(embed_tracks)} new tracks from embed page for '{playlist['name']}'")
             
-            # Step 4: If embed didn't get all tracks, use embed token to fetch remaining via batch lookup
+            # Step 4: If embed didn't get all tracks, use embed token to fetch remaining via API pagination
+            # Key insight: when total_tracks is 0 or matches len(tracks) exactly at 100,
+            # the embed page likely capped at 100. We use the embed token to discover the
+            # real total and paginate the rest — this is lightweight (no Selenium/Chrome needed).
             total_expected = playlist.get("total_tracks", 0) or len(tracks)
             
-            if embed_token and len(tracks) < total_expected and len(tracks) > 0:
-                logger.info(f"Have {len(tracks)}/{total_expected} tracks, fetching remaining via batch track lookup...")
+            if embed_token and len(tracks) > 0 and (len(tracks) < total_expected or len(tracks) == 100):
+                logger.info(f"Have {len(tracks)}/{total_expected} tracks, fetching remaining via embed token pagination...")
                 
                 try:
                     all_track_ids = set(t["id"] for t in tracks)
                     offset = len(tracks)
                     
-                    while offset < total_expected:
-                        logger.info(f"Fetching track IDs via embed token... ({offset}/{total_expected})")
+                    # Start with at least one fetch to discover real total
+                    real_total = total_expected
+                    
+                    while offset < real_total or (offset == 100 and real_total == 100):
+                        logger.info(f"Fetching tracks via embed token... ({offset}/{real_total})")
                         try:
                             resp = await self.client.get(
                                 f"{self.API_BASE}/playlists/{playlist_id}/tracks",
@@ -770,6 +776,13 @@ class SpotifyService:
                                 break
                             
                             page_data = resp.json()
+                            
+                            # Update real total from the API response (this is the true playlist size!)
+                            api_total = page_data.get("total")
+                            if api_total and api_total > real_total:
+                                real_total = api_total
+                                logger.info(f"Discovered real playlist total: {real_total} tracks")
+                            
                             page_items = page_data.get("items", [])
                             if not page_items:
                                 break
@@ -788,14 +801,14 @@ class SpotifyService:
                             logger.warning(f"Embed token pagination error at offset {offset}: {e}")
                             break
                     
-                    logger.info(f"After pagination: {len(tracks)} total tracks")
+                    logger.info(f"After embed token pagination: {len(tracks)} total tracks")
                 except Exception as e:
-                    logger.warning(f"Batch track lookup failed: {e}")
+                    logger.warning(f"Embed token pagination failed: {e}")
             
             # Step 5: Browser scrape fallback for large playlists (100+ tracks)
-            # If we still don't have all the tracks, or if exactly 100 tracks were found
-            # (hitting the initial Spotify pagination limit), use headless Selenium to scroll
-            # through the full Spotify playlist page and extract all track data.
+            # If we still don't have all tracks after embed token pagination,
+            # use headless Selenium to scroll through the full Spotify playlist page.
+            # NOTE: This works on local servers but may OOM on Render's 512MB free tier.
             total_expected = playlist.get("total_tracks", 0) or len(tracks)
             if len(tracks) < total_expected or len(tracks) == 100:
                 logger.info(f"Have {len(tracks)}/{total_expected} tracks (or exactly 100). Launching browser scrape fallback...")
@@ -812,7 +825,6 @@ class SpotifyService:
                         for bt in browser_tracks:
                             key = f"{bt['artists']}|||{bt['name']}".lower()
                             if key not in existing_keys:
-                                # Create a track entry from browser data
                                 import hashlib
                                 track_hash = hashlib.md5(f"{bt['artists']}-{bt['name']}".encode()).hexdigest()[:12]
                                 tracks.append({
@@ -833,7 +845,6 @@ class SpotifyService:
                                 new_count += 1
                         
                         logger.info(f"Browser scrape added {new_count} new tracks (total: {len(tracks)})")
-                        # Mark all browser-scraped tracks for art enrichment
                         if new_count > 0:
                             embed_tracks.extend(tracks[-new_count:])
                 except Exception as e:
