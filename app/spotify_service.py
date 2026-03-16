@@ -967,40 +967,43 @@ class SpotifyService:
                 last_seen_count = 0
                 
                 def extract_visible_tracks():
-                    # No need for nonlocal seen_tracks since we're modifying the dict
-                    current_rows = driver.find_elements(By.CSS_SELECTOR, SELECTOR)
-                    for row in current_rows:
-                        try:
-                            text = row.text.strip()
-                            parts = [p.strip() for p in text.split('\n') if p.strip()]
+                    # Massively optimized JS extraction to prevent Selenium IPC timeouts and OOM
+                    js_code = """
+                    let rows = document.querySelectorAll('[data-testid="tracklist-row"]');
+                    let results = [];
+                    for (let r of rows) {
+                        let lines = r.innerText.split('\\n').map(l => l.trim()).filter(l => l);
+                        if (!lines || !lines[0].match(/^\\d+$/)) continue; // skip if not numbered
+                        
+                        lines.shift(); // remove number
+                        if (lines.length > 0 && lines[0] === 'E') lines.shift(); // remove explicit tag
+                        
+                        if (lines.length >= 2) {
+                            let trackName = lines[0];
+                            let artist = lines[1];
+                            if (artist === 'E' && lines.length >= 3) artist = lines[2];
                             
-                            # Only extract numbered tracks (skip "Recommended" section)
-                            if not parts or not parts[0].isdigit():
-                                continue
-                            
-                            # Skip the track number
-                            parts = parts[1:]
-                            
-                            # Skip "E" (Explicit) marker if it appears directly after the number
-                            if parts and parts[0] == "E":
-                                parts = parts[1:]
-                            
-                            if len(parts) >= 2:
-                                track_name = parts[0].strip()
-                                artist = parts[1].strip()
-                                # Sometimes "E" appears as second element (after track name)
-                                if artist == "E" and len(parts) >= 3:
-                                    artist = parts[2].strip()
-                                
-                                if track_name and artist and artist != "E":
-                                    key = f"{artist}|||{track_name}".lower()
-                                    if key not in seen_tracks:
-                                        seen_tracks[key] = {
-                                            "name": track_name,
-                                            "artists": artist
-                                        }
-                        except Exception:
-                            continue
+                            if (trackName && artist && artist !== 'E') {
+                                results.push(artist + "|||" + trackName);
+                            }
+                        }
+                    }
+                    return results;
+                    """
+                    try:
+                        extracted = driver.execute_script(js_code)
+                        for item in extracted:
+                            parts = item.split("|||")
+                            if len(parts) == 2:
+                                artist, track_name = parts
+                                key = f"{artist}|||{track_name}".lower()
+                                if key not in seen_tracks:
+                                    seen_tracks[key] = {
+                                        "name": track_name,
+                                        "artists": artist
+                                    }
+                    except Exception as e:
+                        logger.warning(f"JS extraction error: {e}")
                 
                 # First extraction before scrolling
                 extract_visible_tracks()
@@ -1009,10 +1012,13 @@ class SpotifyService:
                 # Scroll to load all tracks. Stop when we reach 10 consecutive stale scrolls
                 stale_limit = 10
                 while stale_count < stale_limit:
-                    rows = driver.find_elements(By.CSS_SELECTOR, SELECTOR)
-                    if rows:
-                        # Scroll the last row into view
-                        driver.execute_script("arguments[0].scrollIntoView({block: 'end'});", rows[-1])
+                    try:
+                        rows = driver.find_elements(By.CSS_SELECTOR, SELECTOR)
+                        if rows:
+                            # Scroll the last row into view
+                            driver.execute_script("arguments[0].scrollIntoView({block: 'end'});", rows[-1])
+                    except Exception:
+                        pass
                     
                     # Wait for network/DOM to catch up
                     time.sleep(1.0)
@@ -1023,11 +1029,15 @@ class SpotifyService:
                         stale_count += 1
                         if stale_count % 3 == 0:
                             # Try scrolling up a bit and back down if stuck
-                            driver.execute_script("window.scrollBy(0, -300);")
-                            time.sleep(0.5)
-                            if rows:
-                                driver.execute_script("arguments[0].scrollIntoView({block: 'end'});", rows[-1])
+                            try:
+                                driver.execute_script("window.scrollBy(0, -300);")
                                 time.sleep(0.5)
+                                rows = driver.find_elements(By.CSS_SELECTOR, SELECTOR)
+                                if rows:
+                                    driver.execute_script("arguments[0].scrollIntoView({block: 'end'});", rows[-1])
+                                    time.sleep(0.5)
+                            except Exception:
+                                pass
                     else:
                         stale_count = 0
                         
