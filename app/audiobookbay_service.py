@@ -11,15 +11,30 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 ABB_BASE_URL = "https://audiobookbay.lu"
 
+def extract_slug_from_url(url: str):
+    """
+    Extract the audiobook slug from a full AudiobookBay URL.
+    e.g. 'https://audiobookbay.lu/audio-books/it-a-novel-4/' -> 'audio-books/it-a-novel-4'
+    """
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    path = parsed.path.strip('/')
+    return path if path else None
+
+
+def is_audiobookbay_url(text: str) -> bool:
+    """Check if a string is an AudiobookBay URL."""
+    return bool(re.match(r'https?://(www\.)?audiobookbay\.[a-z]+/', text))
+
+
 async def search_audiobooks(query: str, page: int = 1):
     """
     Search AudiobookBay for audiobooks.
+    Supports pagination via the `page` parameter (1-indexed).
     """
-    # ABB requires &tt=1 for author/title search to return actual results
-    # ABB blocks direct URL query strings. We must load the homepage, type the query, and hit enter.
     loop = asyncio.get_event_loop()
     
-    def fetch_with_selenium(search_query: str):
+    def fetch_with_selenium(search_query: str, target_page: int):
         options = Options()
         options.add_argument('--headless=new')
         options.add_argument('--window-size=1920,1080')
@@ -56,18 +71,29 @@ async def search_audiobooks(query: str, page: int = 1):
             # 2. Find Search Box, Type, Submit
             search_box = driver.find_element(By.NAME, 's')
             search_box.send_keys(search_query)
-            # If checking author/title only, there's no easy UI toggle, but typically default search is enough.
             search_box.send_keys(Keys.RETURN)
             
             # 3. Wait for results page
             time.sleep(3)
+            
+            # 4. If requesting a page beyond 1, navigate to the paginated URL
+            if target_page > 1:
+                # ABB pagination URL pattern: /?s=query/page/N/
+                current_url = driver.current_url
+                # Build paginated URL from the current search results URL
+                if '?' in current_url:
+                    paginated_url = current_url.rstrip('/') + f'/page/{target_page}/'
+                else:
+                    paginated_url = current_url.rstrip('/') + f'/page/{target_page}/'
+                driver.get(paginated_url)
+                time.sleep(3)
             
             return driver.page_source
         finally:
             driver.quit()
 
     try:
-        html_content = await loop.run_in_executor(None, fetch_with_selenium, query)
+        html_content = await loop.run_in_executor(None, fetch_with_selenium, query, page)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Failed to fetch from AudiobookBay via Selenium: {str(e)}")
 

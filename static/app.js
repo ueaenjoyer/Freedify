@@ -1789,6 +1789,12 @@ async function performSearch(query, append = false) {
                 showDetailView(data.results[0], data.tracks);
                 return;
             }
+            // Auto-open audiobook modal when a direct ABB URL is pasted
+            if (data.type === 'audiobook' && data.results && data.results.length > 0) {
+                const book = data.results[0];
+                openAudiobook(book.id);
+                return;
+            }
             // Auto-play single track (e.g. YouTube link)
             if (data.results && data.results.length === 1 && data.type === 'track') {
                 const track = data.results[0];
@@ -1806,7 +1812,9 @@ async function performSearch(query, append = false) {
         // Show/hide Load More button
         const loadMoreBtn = $('#load-more-btn');
         if (loadMoreBtn) {
-            if (data.results.length >= 20) {
+            // ABB returns ~15 results per page, so use a lower threshold for audiobooks
+            const loadMoreThreshold = (data.type === 'audiobook') ? 5 : 20;
+            if (data.results.length >= loadMoreThreshold) {
                 loadMoreBtn.classList.remove('hidden');
             } else {
                 loadMoreBtn.classList.add('hidden');

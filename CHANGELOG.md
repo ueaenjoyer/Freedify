@@ -10,7 +10,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [1.3.7] - 2026-03-10
+## [1.3.8] - 2026-03-18
+
+### Added
+- **Audiobook Direct URL Support**: Paste a full AudiobookBay URL into the search bar to jump directly to the book modal, bypassing keyword search limitations.
+- **Audiobook Search Pagination**: Enabled "Load More Results" for audiobooks, wiring up AudiobookBay's pagination to browse deep into result pages.
+- **Spotify Embed Pagination**: Added a lightweight API-based pagination fallback using embed tokens to discover and fetch 100+ track playlists without requiring the resource-heavy browser scraper in most cases.
+
+### Fixed
+- **Audiobook Chapter Progression**: Fixed an issue where audiobooks wouldn't auto-advance to the next chapter at the end of playback.
+- **"Save to My Books" Sync**: Resolved a closure-related bug where toggling favorite status on a new book would sometimes remove the previously viewed book instead.
+- **My Books "Play" Resume**: Clicking play on a book in "My Books" now correctly resumes the exact chapter and timestamp you left off at.
+
+### Improved
+- **High-Speed Audio Quality**: Added `preservesPitch` support to the audio engine, fixing metallic crackling and artifacts when listening to audiobooks or podcasts at 1.5x or 2x speed.
+
+### Fixed
+- **Audiobook Chapter Auto-Progression**: Fixed an issue where audiobooks would not automatically continue to the next chapter; `handleEnded` now correctly advances the queue.
+- **Audiobook Info Resume**: The "Resume" button in the Book Info modal now correctly loads the entire book into the queue and starts exactly at the saved chapter and timestamp.
+- **Audiobook "Save to My Books" Closure Bug**: Fixed a bug where clicking the save/favorite button in the Audiobook search modal would sometimes add or remove the wrong book due to a stale ID closure.
+- **Spotify Scraper Memory Optimization**: Drastically reduced RAM usage for the headless Selenium scraper to prevent OOM crashes on Render. Offloaded track extraction to a single optimized JavaScript call to eliminate IPC bottlenecks and ReadTimeout errors.
+
+---
+
+## [1.3.7] - 2026-03-16
 
 ### Added
 - **Playlist Management**: Added ♡ "Add All to Playlist" and per-track ♡ "Add to Playlist" buttons to the playlist detail view.

@@ -38,7 +38,7 @@ from app.listenbrainz_service import listenbrainz_service
 from app.jamendo_service import jamendo_service
 from app.genius_service import genius_service
 from app.concert_service import concert_service
-from app.audiobookbay_service import search_audiobooks, get_audiobook_details
+from app.audiobookbay_service import search_audiobooks, get_audiobook_details, is_audiobookbay_url, extract_slug_from_url
 from app.premiumize_service import create_transfer, check_transfer_status, list_folder_contents, search_my_files
 
 from app.cache import cleanup_cache, periodic_cleanup, is_cached, get_cache_path
@@ -265,7 +265,29 @@ async def search(
             
         # Audiobook Search
         if type == "audiobook":
-            results = await search_audiobooks(q)
+            # Check if the query is a direct AudiobookBay URL
+            if is_audiobookbay_url(q):
+                slug = extract_slug_from_url(q)
+                if slug:
+                    details = await get_audiobook_details(slug)
+                    # Return as a single result with is_url flag so the frontend auto-opens it
+                    return {
+                        "results": [{
+                            "id": details["id"],
+                            "title": details["title"],
+                            "cover_image": details.get("cover_image"),
+                            "description": details.get("description", ""),
+                            "source": "audiobookbay"
+                        }],
+                        "query": q,
+                        "type": "audiobook",
+                        "source": "audiobookbay",
+                        "is_url": True,
+                        "offset": 0
+                    }
+            # Normal keyword search with pagination
+            page = (offset // 15) + 1 if offset > 0 else 1
+            results = await search_audiobooks(q, page=page)
             return {"results": results, "query": q, "type": "audiobook", "source": "audiobookbay", "offset": offset}
         
         # YouTube Music Search
