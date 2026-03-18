@@ -1561,15 +1561,17 @@ function openBookInfoModal(book) {
     
     // Play button
     const playBtn = document.getElementById('book-info-play-btn');
-    // Check for resume position
+    // Check for resume position — find the chapter with a saved position
     let resumeText = '▶ Play';
+    let resumeChapterIndex = -1;
     if (book.cachedTracks && book.cachedTracks.length > 0) {
-        for (const t of book.cachedTracks) {
-            const pos = getEpisodePosition(t.id);
+        for (let i = 0; i < book.cachedTracks.length; i++) {
+            const pos = getEpisodePosition(book.cachedTracks[i].id);
             if (pos > 10) {
                 const mins = Math.floor(pos / 60);
                 const secs = Math.floor(pos % 60);
-                resumeText = `▶ Resume Ch.${t.track_number} @ ${mins}:${String(secs).padStart(2, '0')}`;
+                resumeText = `▶ Resume Ch.${book.cachedTracks[i].track_number} @ ${mins}:${String(secs).padStart(2, '0')}`;
+                resumeChapterIndex = i;
                 break;
             }
         }
@@ -1579,14 +1581,13 @@ function openBookInfoModal(book) {
     playBtn.onclick = () => {
         modal.classList.add('hidden');
         if (book.cachedTracks && book.cachedTracks.length > 0) {
-            const albumData = {
-                id: `ab_cached_${book.id}`,
-                name: book.name,
-                artists: 'Audiobook',
-                image: book.artwork || '/static/icon.svg',
-                is_playlist: false
-            };
-            showDetailView(albumData, book.cachedTracks);
+            // Load all chapters into the queue
+            state.queue = book.cachedTracks.map(t => ({...t}));
+            // Jump to the resume chapter, or start from the beginning
+            const startIdx = resumeChapterIndex >= 0 ? resumeChapterIndex : 0;
+            state.currentIndex = startIdx;
+            updateQueueUI();
+            loadTrack(state.queue[startIdx]);
         } else {
             openAudiobook(book.id);
         }
@@ -3317,12 +3318,12 @@ async function updateFormatBadge(audioSrc) {
         if (source === 'podcast' || source === 'audiobook') {
             speedBtn.classList.remove('hidden');
             speedBtn.textContent = state.playbackSpeed.toFixed(1) + 'x';
-            if (audioPlayer) audioPlayer.playbackRate = state.playbackSpeed;
-            if (audioPlayer2) audioPlayer2.playbackRate = state.playbackSpeed;
+            if (audioPlayer) { audioPlayer.preservesPitch = true; audioPlayer.playbackRate = state.playbackSpeed; }
+            if (audioPlayer2) { audioPlayer2.preservesPitch = true; audioPlayer2.playbackRate = state.playbackSpeed; }
         } else {
             speedBtn.classList.add('hidden');
-            if (audioPlayer) audioPlayer.playbackRate = 1.0;
-            if (audioPlayer2) audioPlayer2.playbackRate = 1.0;
+            if (audioPlayer) { audioPlayer.preservesPitch = true; audioPlayer.playbackRate = 1.0; }
+            if (audioPlayer2) { audioPlayer2.preservesPitch = true; audioPlayer2.playbackRate = 1.0; }
         }
     }
 
@@ -3610,8 +3611,9 @@ if (playbackSpeedBtn) {
         
         playbackSpeedBtn.textContent = state.playbackSpeed.toFixed(1) + 'x';
         
-        if (audioPlayer) audioPlayer.playbackRate = state.playbackSpeed;
-        if (audioPlayer2) audioPlayer2.playbackRate = state.playbackSpeed;
+        // preservesPitch prevents audio crackling/artifacts at higher playback speeds
+        if (audioPlayer) { audioPlayer.preservesPitch = true; audioPlayer.playbackRate = state.playbackSpeed; }
+        if (audioPlayer2) { audioPlayer2.preservesPitch = true; audioPlayer2.playbackRate = state.playbackSpeed; }
     });
 }
 
@@ -3666,7 +3668,7 @@ function togglePlay() {
     }
 }
 
-function playNext() {
+function playNext(forceAdvance) {
     // Guard against race conditions - if gapless transition is already handling this, skip
     if (transitionInProgress) {
         console.log('playNext: Transition already in progress, skipping to prevent double-trigger');
@@ -3675,8 +3677,9 @@ function playNext() {
     
     const currentTrack = state.queue[state.currentIndex];
     const player = getActivePlayer();
-    // Podcast/Audiobook: seek +15s instead of next track
-    if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
+    // Podcast/Audiobook: seek +15s on manual next button press
+    // But if forceAdvance is true (called from handleEnded), advance to next chapter instead
+    if (!forceAdvance && currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
         player.currentTime = Math.min(player.duration || 0, player.currentTime + 15);
         return;
     }
@@ -3799,7 +3802,8 @@ function handleEnded(e) {
         clearEpisodePosition(currentTrack.id);
     }
     
-    playNext();
+    // forceAdvance=true so audiobook/podcast chapters advance to next instead of seeking +15s
+    playNext(true);
 }
 
 // Bind events to both players
@@ -9061,20 +9065,21 @@ async function openAudiobook(id) {
             favBtn.id = 'audiobook-fav-btn';
             btn.parentNode.insertBefore(favBtn, btn.nextSibling);
             favBtn.style.marginTop = '10px';
-            
-            favBtn.addEventListener('click', () => {
-                if (!currentAudiobookDetails) return;
-                const bookInfo = {
-                    id: id,
-                    name: currentAudiobookDetails.title,
-                    artist: 'AudiobookBay',
-                    artwork: currentAudiobookDetails.cover_image || '/static/icon.svg'
-                };
-                const nowFav = toggleAudiobookFavorite(bookInfo);
-                favBtn.textContent = nowFav ? '❤️ In My Books' : '🤍 Save to My Books';
-                favBtn.className = nowFav ? 'btn-secondary saved' : 'btn-secondary';
-            });
         }
+        
+        // Replace click handler every time so it always references the CURRENT book
+        favBtn.onclick = () => {
+            if (!currentAudiobookDetails) return;
+            const bookInfo = {
+                id: currentAudiobookDetails.id || id,
+                name: currentAudiobookDetails.title,
+                artist: 'AudiobookBay',
+                artwork: currentAudiobookDetails.cover_image || '/static/icon.svg'
+            };
+            const nowFav = toggleAudiobookFavorite(bookInfo);
+            favBtn.textContent = nowFav ? '❤️ In My Books' : '🤍 Save to My Books';
+            favBtn.className = nowFav ? 'btn-secondary saved' : 'btn-secondary';
+        };
         
         const isFav = isAudiobookFavorited(id);
         favBtn.textContent = isFav ? '❤️ In My Books' : '🤍 Save to My Books';
