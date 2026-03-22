@@ -39,7 +39,7 @@ from app.jamendo_service import jamendo_service
 from app.genius_service import genius_service
 from app.concert_service import concert_service
 from app.audiobookbay_service import search_audiobooks, get_audiobook_details, is_audiobookbay_url, extract_slug_from_url
-from app.premiumize_service import create_transfer, check_transfer_status, list_folder_contents, search_my_files
+from app.premiumize_service import create_transfer, check_transfer_status, list_folder_contents, search_my_files, delete_item
 
 from app.cache import cleanup_cache, periodic_cleanup, is_cached, get_cache_path
 
@@ -1647,6 +1647,21 @@ async def search_premiumize_files(q: str = Query(..., description="Query to sear
         return {"results": results}
     except Exception as e:
         logger.error(f"Premiumize search error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/premiumize/delete")
+async def delete_premiumize_item(request: Request):
+    """Delete a transfer, folder, or file from Premiumize."""
+    try:
+        data = await request.json()
+        item_id = data.get("id")
+        is_transfer = data.get("is_transfer", False)
+        if not item_id:
+            raise HTTPException(status_code=400, detail="ID is required")
+        result = await delete_item(item_id, is_transfer)
+        return {"status": "success", "result": result}
+    except Exception as e:
+        logger.error(f"Premiumize delete error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

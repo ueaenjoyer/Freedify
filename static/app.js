@@ -844,6 +844,8 @@ function addAudiobookFavorite(book) {
         name: book.name || book.title,
         artist: book.artists || book.artist || 'AudiobookBay',
         artwork: book.album_art || book.cover_image || book.artwork || '/static/icon.svg',
+        folder_id: book.folder_id || null,
+        premiumize_id: book.premiumize_id || null,
         addedAt: Date.now()
     });
     saveAudiobookFavorites();
@@ -1610,6 +1612,65 @@ function openBookInfoModal(book) {
         };
     } else {
         chaptersBtn.style.display = 'none';
+    }
+    
+    // Delete from Cloud button
+    const deleteBtn = document.getElementById('book-info-delete-btn');
+    // Show if we have IDs OR if we have cached tracks (we can pull IDs from them)
+    if (book.folder_id || book.premiumize_id || (book.cachedTracks && book.cachedTracks.length > 0)) {
+        deleteBtn.classList.remove('hidden');
+        deleteBtn.onclick = async () => {
+            if (!confirm(`Are you sure you want to delete "${book.name}" from your Premiumize cloud? This cannot be undone.`)) return;
+            
+            // Try to get ID from various places
+            let itemId = book.folder_id || book.premiumize_id;
+            let isTransfer = !!book.premiumize_id && !book.folder_id;
+            
+            if (!itemId && book.cachedTracks && book.cachedTracks.length > 0) {
+                // Try to extract folder/file ID from the first track's URL
+                const track = book.cachedTracks[0];
+                const streamUrl = track.src || (track.isrc && track.isrc.startsWith('LINK:') ? atob(track.isrc.replace('LINK:', '').replace(/-/g, '+').replace(/_/g, '/')) : '');
+                
+                if (streamUrl.includes('premiumize.me')) {
+                    const urlObj = new URL(streamUrl);
+                    itemId = urlObj.searchParams.get('id'); // Common in direct links
+                }
+            }
+            
+            if (!itemId) {
+                showToast('Could not find Cloud ID for this book. Try re-searching it.');
+                return;
+            }
+            
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = '⏳ Deleting...';
+            
+            try {
+                const response = await fetch('/api/premiumize/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: itemId, is_transfer: isTransfer })
+                });
+                const data = await response.json();
+                
+                if (response.ok && data.status === 'success') {
+                    showToast(`Deleted "${book.name}" from cloud`);
+                    // Remove from favorites/cached tracks since it's gone from source
+                    removeAudiobookFavorite(book.id);
+                    modal.classList.add('hidden');
+                    renderMyBooksView();
+                } else {
+                    throw new Error(data.detail || 'Delete failed');
+                }
+            } catch (err) {
+                console.error('Delete error:', err);
+                showToast(`Failed to delete: ${err.message}`);
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = '🗑 Delete from Cloud';
+            }
+        };
+    } else {
+        deleteBtn.classList.add('hidden');
     }
     
     // Close handlers

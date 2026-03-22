@@ -53,3 +53,8 @@ freedify_settings.json
 
 # Tests
 test_*.py
+
+# AI & Project Context
+GEMINI.md
+PLAN.md
+

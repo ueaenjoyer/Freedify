@@ -148,3 +148,19 @@ async def refresh_link_by_filename(filename: str) -> str | None:
     except Exception as e:
         logger.error(f"Premiumize link refresh error: {e}")
         return None
+
+async def delete_item(item_id: str, is_transfer: bool = False):
+    """
+    Delete a transfer, folder, or file from Premiumize.
+    If is_transfer is True, deletes from /transfer/delete.
+    Otherwise, tries /folder/delete first, then /file/delete if it fails.
+    """
+    if is_transfer:
+        return await _make_request("/transfer/delete", method="POST", data={"id": item_id})
+    
+    # Try deleting as a folder
+    try:
+        return await _make_request("/folder/delete", method="POST", data={"id": item_id})
+    except HTTPException as e:
+        # If folder delete fails, try as a file
+        return await _make_request("/file/delete", method="POST", data={"id": item_id})
