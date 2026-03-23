@@ -10,11 +10,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
-## [1.3.9] - 2026-03-22
+## [1.3.9] - 2026-03-23
+
+### Fixed
+- **Audiobook Search Timeouts**: Optimized `audiobookbay_service.py` for Render's resource-constrained environment.
+    - Implemented direct URL search to reduce Chromium page loads by 50%.
+    - Added 15+ aggressive RAM-saving Chrome flags to prevent OOM crashes.
+    - Added automatic retry logic and replaced fixed sleeps with `WebDriverWait` for better reliability.
 
 ### Changed
 - Improved mobile layout for podcast and audiobook tracks to prevent title truncation.
 - Implemented double-layered track layout on mobile (title wraps and actions move to second row).
+
 
 ## [1.3.8] - 2026-03-18
 
