@@ -25,7 +25,7 @@ import {
 import {
     addToHistory, addToPodcastHistory, addToAudiobookHistory,
     saveEpisodePosition, getEpisodePosition, clearEpisodePosition,
-    markEpisodePlayed,
+    markEpisodePlayed, saveMoodEvent,
 } from './data.js';
 
 // ========== FORWARD DECLARATIONS (set by app.js) ==========
@@ -485,6 +485,19 @@ export function togglePlay() {
     }
 }
 
+function logMoodEvent() {
+    if (!state.currentMood) return;
+    const player = getActivePlayer();
+    const track = state.queue[state.currentIndex];
+    if (!track || !player) return;
+    // Skip podcasts/audiobooks — they don't participate in mood tracking
+    if (track.source === 'podcast' || track.source === 'audiobook') return;
+    const duration = player.duration;
+    if (!isFinite(duration) || duration <= 0) return;
+    const percentage = player.currentTime / duration;
+    saveMoodEvent(state.currentMood, track, percentage);
+}
+
 export function playNext(forceAdvance) {
     if (audio.transitionInProgress) return;
 
@@ -501,6 +514,8 @@ export function playNext(forceAdvance) {
         player.play();
         return;
     }
+
+    logMoodEvent(); // Log mood event for the track that's about to end
 
     if (state.currentIndex < state.queue.length - 1) {
         state.currentIndex++;
