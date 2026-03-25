@@ -1009,50 +1009,65 @@ async function checkAndAddTracks() {
             };
 
 
-            const response = await fetch('/api/ai-radio/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            });
+            async function processAIRadioResponse(response) {
+                if (response.ok) {
+                    const data = await response.json();
+                    const searchTerms = data.search_terms || [];
 
-            if (response.ok) {
-                const data = await response.json();
-                const searchTerms = data.search_terms || [];
+                    // Search and add tracks
+                    let addedCount = 0;
+                    for (const term of searchTerms) {
+                        if (addedCount >= 3) break; // Limit adds per batch
 
-                // Search and add tracks
-                let addedCount = 0;
-                for (const term of searchTerms) {
-                    if (addedCount >= 3) break; // Limit adds per batch
+                        try {
+                            const searchRes = await fetch(`/api/search?q=${encodeURIComponent(term)}&type=track`);
+                            if (searchRes.ok) {
+                                const searchData = await searchRes.json();
+                                const results = searchData.results || [];
 
-                    try {
-                        const searchRes = await fetch(`/api/search?q=${encodeURIComponent(term)}&type=track`);
-                        if (searchRes.ok) {
-                            const searchData = await searchRes.json();
-                            const results = searchData.results || [];
-
-                            // Add first non-duplicate result
-                            for (const track of results.slice(0, 3)) {
-                                const isDupe = state.queue.some(q =>
-                                    q.id === track.id ||
-                                    (q.name?.toLowerCase() === track.name?.toLowerCase() &&
-                                     q.artists?.toLowerCase() === track.artists?.toLowerCase())
-                                );
-                                if (!isDupe) {
-                                    state.queue.push(track);
-                                    addedCount++;
-                                    break;
+                                // Add first non-duplicate result
+                                for (const track of results.slice(0, 3)) {
+                                    const isDupe = state.queue.some(q =>
+                                        q.id === track.id ||
+                                        (q.name?.toLowerCase() === track.name?.toLowerCase() &&
+                                         q.artists?.toLowerCase() === track.artists?.toLowerCase())
+                                    );
+                                    if (!isDupe) {
+                                        state.queue.push(track);
+                                        addedCount++;
+                                        break;
+                                    }
                                 }
                             }
+                        } catch (e) {
+                            console.warn('AI Radio search error:', e);
                         }
-                    } catch (e) {
-                        console.warn('AI Radio search error:', e);
+                    }
+
+                    if (addedCount > 0) {
+                        emit('updateQueueUI');
+                        showToast(`Added ${addedCount} tracks to queue`);
                     }
                 }
+            }
 
-                if (addedCount > 0) {
-                    emit('updateQueueUI');
-                    showToast(`Added ${addedCount} tracks to queue`);
-                }
+            try {
+                const response = await fetch('/api/ai-radio/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                await processAIRadioResponse(response);
+            } catch (err) {
+                console.error('AI Radio with mood failed, retrying without mood:', err);
+                showToast('Mood-aware recommendations failed. Falling back to standard mode.');
+                // Retry without mood context
+                const fallbackResponse = await fetch('/api/ai-radio/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ seed_track: seed, current_queue: queueTracks, count: 5 })
+                });
+                await processAIRadioResponse(fallbackResponse);
             }
         } catch (err) {
             console.error('AI Radio error:', err);

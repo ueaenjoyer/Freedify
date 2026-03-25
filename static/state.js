@@ -95,4 +95,27 @@ export const state = {
     if (!localStorage.getItem('freedify_current_mood')) {
         localStorage.setItem('freedify_current_mood', JSON.stringify(null));
     }
+
+    // Validate moodPreferences structure — show toast on corruption per spec
+    try {
+        const prefs = JSON.parse(localStorage.getItem('freedify_mood_preferences'));
+        if (typeof prefs !== 'object' || prefs === null || !prefs.Focus) {
+            throw new Error('invalid structure');
+        }
+    } catch {
+        localStorage.setItem('freedify_mood_preferences', JSON.stringify({
+            Focus: { liked: [], disliked: [] },
+            Workout: { liked: [], disliked: [] },
+            Chill: { liked: [], disliked: [] },
+            Party: { liked: [], disliked: [] },
+            "Late Night": { liked: [], disliked: [] },
+            Commute: { liked: [], disliked: [] }
+        }));
+        // Deferred toast — state.js runs before DOM is ready, so schedule for after load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof showToast === 'function') {
+                showToast('Mood preferences reset. Your profile will rebuild over time.');
+            }
+        }, { once: true });
+    }
 })();
