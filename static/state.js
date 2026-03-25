@@ -62,6 +62,9 @@ export const state = {
         "Late Night": { liked: [], disliked: [] },
         Commute: { liked: [], disliked: [] }
     }),
+    syncEnabled: safeLoad('freedify_sync_enabled', false),
+    syncConnectedDevices: [],
+    syncLastAppliedTimestamp: 0,
 };
 
 // One-time migration: move audiobook entries from podcastHistory to audiobookHistory
