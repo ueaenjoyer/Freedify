@@ -1097,6 +1097,8 @@ class AIRadioRequest(BaseModel):
     mood: Optional[str] = None
     current_queue: Optional[List[QueueTrack]] = None
     count: int = 5
+    mood_liked: Optional[List[str]] = None
+    mood_disliked: Optional[List[str]] = None
 
 
 @app.post("/api/ai-radio/generate")
@@ -1110,7 +1112,9 @@ async def generate_ai_radio_recommendations(request: AIRadioRequest):
             seed_track=seed,
             mood=request.mood,
             current_queue=queue,
-            count=request.count
+            count=request.count,
+            mood_liked=request.mood_liked,
+            mood_disliked=request.mood_disliked,
         )
         return result
     except Exception as e:

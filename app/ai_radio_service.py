@@ -44,7 +44,9 @@ class AIRadioService:
         seed_track: Optional[Dict[str, Any]] = None,
         mood: Optional[str] = None,
         current_queue: List[Dict[str, Any]] = None,
-        count: int = 5
+        count: int = 5,
+        mood_liked: Optional[List[str]] = None,
+        mood_disliked: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Generate track recommendations for AI Radio.
@@ -67,10 +69,21 @@ Title: "{seed_track.get('name', 'Unknown')}"
 Artist: {seed_track.get('artists', 'Unknown')}
 BPM: {seed_track.get('bpm', 'Unknown')}
 Key: {seed_track.get('camelot', 'Unknown')}"""
+            # Append mood alongside seed track (not elif — both can coexist)
+            if mood:
+                context += f'\nMood/vibe context: "{mood}"'
         elif mood:
             context = f'Based on this mood/vibe: "{mood}"'
         else:
             context = "Generate a diverse mix of popular tracks"
+
+        # Append mood-based personalization context
+        if mood_liked:
+            liked_str = ", ".join(mood_liked[:5])
+            context += f"\nThe user especially enjoys tracks like: {liked_str} in this mood."
+        if mood_disliked:
+            disliked_str = ", ".join(mood_disliked[:5])
+            context += f"\nAvoid tracks like: {disliked_str}"
         
         # Exclude current queue tracks
         exclude_list = []
