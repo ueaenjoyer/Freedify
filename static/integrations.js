@@ -12,7 +12,7 @@ import { audio, getActivePlayer } from './audio-engine.js';
 import { savePlaylists, createPlaylist, addToPlaylist, saveLibrary, saveHistory,
          savePodcastFavorites, saveAudiobookFavorites, savePodcastPlayed,
          savePodcastResumePositions, savePodcastHistory, saveAudiobookHistory,
-         savePodcastTags } from './data.js';
+         savePodcastTags, getMoodPreferences } from './data.js';
 
 // ========== MEDIA SESSION API (Lock Screen Controls) ==========
 
@@ -966,12 +966,22 @@ async function checkAndAddTracks() {
                 artists: t.artists
             }));
 
-            // If no seed, use a default mood
+            // Build mood context
+            let moodLiked = [];
+            let moodDisliked = [];
+            if (state.currentMood) {
+                const prefs = getMoodPreferences(state.currentMood);
+                moodLiked = prefs.liked.slice(0, 5).map(t => `${t.name} - ${t.artist}`);
+                moodDisliked = prefs.disliked.slice(0, 5).map(t => `${t.name} - ${t.artist}`);
+            }
+
             const requestBody = {
                 seed_track: seed,
-                mood: seed ? null : "popular music hits",
+                mood: state.currentMood || (seed ? null : "popular music hits"),
                 current_queue: queueTracks,
-                count: 5
+                count: 5,
+                mood_liked: moodLiked.length ? moodLiked : undefined,
+                mood_disliked: moodDisliked.length ? moodDisliked : undefined,
             };
 
 
