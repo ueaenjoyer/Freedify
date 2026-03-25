@@ -57,4 +57,5 @@ test_*.py
 # AI & Project Context
 CLAUDE.md
 PLAN.md
+docs/
 

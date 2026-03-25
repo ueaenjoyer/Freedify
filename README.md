@@ -1,7 +1,7 @@
 # Freedify - Music Streaming Web App
 
 ```markdown
-*Last updated: March 9, 2026*
+*Last updated: March 25, 2026*
 ```
 
 Stream music and podcasts from anywhere. **Generate smart playlists with AI**, search songs, albums, artists, podcasts or paste URLs from Spotify, SoundCloud, Bandcamp, Archive.org, Phish.in, and more.
@@ -97,9 +97,22 @@ Open [http://localhost:8000](http://localhost:8000) and start streaming! 🎵
 - **Save Tracks** - Save audio directly to your "Freedify" folder
 - **Privacy** - Uses Drive appDataFolder (hidden from Drive UI)
 
+### 🔗 Cross-Device Sync
+- **Real-Time Sync** - Sync queue, playback, and volume across devices on the same network
+- **Speaker / Remote Mode** - Choose which device plays audio and which acts as a remote control
+- **Auto-Discovery** - Finds other Freedify instances on your LAN via mDNS
+- **Manual IP** - Enter an IP address for Tailscale, VPN, or cross-network setups
+- **Sync Modal** - Access via **More → Sync Devices** in the search menu
+- **Stable Indicator** - Sync status badge shown next to the format indicator (no layout jitter)
+- **WebSocket Relay** - Instant propagation of play/pause, seek, track changes, and volume
+- **Crossfade-Aware** - Defers sync during audio transitions to prevent glitches
+
 ### 🧠 AI & Smart Features - Needs Gemini API Key to work
-- **Smart Playlist Generator** - Create custom playlists instantly by describing a vibe, genre, or activity.
-- **AI Radio** - Infinite queue recommendations based on your seed track (prevents genre drift)
+- **Smart Playlist Generator** - Create custom playlists instantly by describing a vibe, genre, or activity
+- **Mood-Aware Playlists** - Select a mood (Focus, Workout, Chill, Party, Late Night, Commute) or type your own — Smart Playlists and AI Radio learn your preferences over time
+- **Mood Tracking** - Tracks played >75% are "liked" and skipped tracks are "disliked" per mood, personalizing future recommendations
+- **Duration Picker** - Generate playlists from 30 minutes to 4 hours via dropdown selector
+- **AI Radio** - Infinite queue recommendations based on your seed track and mood (prevents genre drift)
 - **DJ Mode** - AI-powered mixing tips (transition technique, timing, key compatibility) - accuracy undetermined
 - **Mix Analysis** - Learn how to mix compatible tracks by Key and BPM
 

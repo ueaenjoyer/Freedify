@@ -1133,6 +1133,9 @@ async def generate_ai_radio_recommendations(request: AIRadioRequest):
 class GeneratePlaylistRequest(BaseModel):
     description: str
     duration_mins: int = 60
+    mood: Optional[str] = None
+    mood_liked: Optional[List[str]] = None
+    mood_disliked: Optional[List[str]] = None
 
 @app.post("/api/ai/generate-playlist")
 async def ai_generate_playlist(request: GeneratePlaylistRequest):
@@ -1140,7 +1143,10 @@ async def ai_generate_playlist(request: GeneratePlaylistRequest):
     try:
         result = await ai_radio_service.generate_playlist(
             description=request.description,
-            duration_mins=request.duration_mins
+            duration_mins=request.duration_mins,
+            mood=request.mood,
+            mood_liked=request.mood_liked,
+            mood_disliked=request.mood_disliked,
         )
         return result
     except Exception as e:

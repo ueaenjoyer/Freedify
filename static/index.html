@@ -116,11 +116,12 @@
                 <button class="menu-item type-btn-menu" data-type="setlist">Setlists</button>
                 <button class="menu-item type-btn-menu" data-type="rec">For You</button>
                 <button class="menu-item type-btn-menu" data-type="favorites">Playlists</button>
-                <button class="menu-item" id="import-playlist-menu-btn">📥 Import Playlist</button>
+                <button class="menu-item" id="import-playlist-menu-btn">Import Playlist</button>
                 <div class="menu-divider"></div>
-                <button class="menu-item" id="lastfm-menu-btn">🎵 Connect Last.fm</button>
-                <button class="menu-item" id="spotify-connect-btn">🟢 Connect Spotify</button>
-                <a href="https://pally.gg/p/freedify" target="_blank" rel="noopener noreferrer" class="menu-item" style="text-decoration: none; color: inherit; display: block;">💖 Donate</a>
+                <button class="menu-item" id="lastfm-menu-btn">Connect Last.fm</button>
+                <button class="menu-item" id="spotify-connect-btn">Connect Spotify</button>
+                <button class="menu-item" id="sync-menu-btn">Sync Devices</button>
+                <a href="https://pally.gg/p/freedify" target="_blank" rel="noopener noreferrer" class="menu-item" style="text-decoration: none; color: inherit; display: block;">Donate</a>
             </div>
         </section>
 
@@ -345,14 +346,24 @@
                 <!-- Playlist Generator Content -->
                 <div class="ai-tab-content active">
                     <p class="ai-tab-desc">Describe your perfect playlist and I'll create it...</p>
-                    <textarea id="ai-playlist-input" class="ai-input" placeholder="e.g., 'A 30-minute morning coffee playlist with jazz and bossa nova'" rows="3"></textarea>
-                    
+
+                    <div id="mood-selector-container"></div>
+
+                    <textarea id="ai-playlist-input" class="ai-input" placeholder="e.g., 'A morning coffee playlist with jazz and bossa nova'" rows="3"></textarea>
+
                     <div class="ai-duration-row">
                         <label>Duration:</label>
-                        <input type="range" id="ai-duration-slider" min="15" max="120" value="60" step="15">
-                        <span id="ai-duration-label">60 min</span>
+                        <select id="ai-duration-select" class="ai-duration-select">
+                            <option value="30">30 min</option>
+                            <option value="60" selected>1 hour</option>
+                            <option value="90">1.5 hours</option>
+                            <option value="120">2 hours</option>
+                            <option value="150">2.5 hours</option>
+                            <option value="180">3 hours</option>
+                            <option value="240">4 hours</option>
+                        </select>
                     </div>
-                    
+
                     <button id="ai-playlist-gen-btn" class="ai-action-btn">🎵 Generate Playlist</button>
                     <div id="ai-playlist-results" class="ai-results"></div>
                 </div>
@@ -477,6 +488,7 @@
                             <span id="player-year" class="player-year"></span>
                             <span id="audio-format-badge" class="audio-format-badge hidden">MP3</span>
                             <button id="playback-speed-btn" class="audio-format-badge hidden" style="cursor: pointer; border: none; outline: none; background: var(--bg-elevated); color: var(--text-primary);" title="Playback Speed">1.0x</button>
+                            <span id="sync-indicator" class="audio-format-badge hidden" title="Cross-Device Sync">🔗</span>
                         </div>
                     </div>
                 </div>

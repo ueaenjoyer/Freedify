@@ -932,17 +932,7 @@ function initAIRadio() {
         console.error('AI Radio button not found! #ai-radio-btn');
     }
 
-    // Insert mood selector container before the AI Radio toggle area
-    const moreMenu = document.getElementById('player-more-menu');
-    if (moreMenu) {
-        let moodContainer = document.getElementById('mood-selector-container');
-        if (!moodContainer) {
-            moodContainer = document.createElement('div');
-            moodContainer.id = 'mood-selector-container';
-            moreMenu.appendChild(moodContainer);
-        }
-        renderMoodSelector(moodContainer);
-    }
+    // Mood selector is now rendered inside the Smart Playlist modal (initAIAssistant)
 
     // Hook into track end
     audioPlayer?.addEventListener('ended', () => {
@@ -1768,13 +1758,15 @@ const aiMenuBtn = document.getElementById('ai-menu-btn');
 const aiPlaylistInput = document.getElementById('ai-playlist-input');
 const aiPlaylistGenBtn = document.getElementById('ai-playlist-gen-btn');
 const aiPlaylistResults = document.getElementById('ai-playlist-results');
-const aiDurationSlider = document.getElementById('ai-duration-slider');
-const aiDurationLabel = document.getElementById('ai-duration-label');
+const aiDurationSelect = document.getElementById('ai-duration-select');
 
 // Open/Close Modal
 function openAIModal() {
     if (aiModal) {
         aiModal.classList.remove('hidden');
+        // Refresh mood selector with latest stats each time modal opens
+        const moodContainer = document.getElementById('mood-selector-container');
+        if (moodContainer) renderMoodSelector(moodContainer);
         aiPlaylistInput?.focus();
         // Hide menu if open
         document.getElementById('search-more-menu')?.classList.add('hidden');
@@ -1793,19 +1785,18 @@ function initAIAssistant() {
     aiModalClose?.addEventListener('click', closeAIModal);
     aiModalOverlay?.addEventListener('click', closeAIModal);
 
-    // Duration slider
-    aiDurationSlider?.addEventListener('input', () => {
-        if (aiDurationLabel) {
-            aiDurationLabel.textContent = `${aiDurationSlider.value} min`;
-        }
-    });
+    // Render mood selector inside the Smart Playlist modal
+    const moodContainer = document.getElementById('mood-selector-container');
+    if (moodContainer) {
+        renderMoodSelector(moodContainer);
+    }
 
     // Playlist Generator
     aiPlaylistGenBtn?.addEventListener('click', async () => {
         const description = aiPlaylistInput?.value?.trim();
         if (!description) return;
 
-        const duration = parseInt(aiDurationSlider?.value) || 60;
+        const duration = parseInt(aiDurationSelect?.value) || 60;
 
         aiPlaylistGenBtn.disabled = true;
         aiPlaylistResults.innerHTML = '<div class="ai-loading">Generating playlist</div>';
@@ -1814,7 +1805,23 @@ function initAIAssistant() {
             const res = await fetch('/api/ai/generate-playlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ description, duration_mins: duration })
+                body: JSON.stringify({
+                    description,
+                    duration_mins: duration,
+                    mood: state.currentMood || undefined,
+                    mood_liked: (() => {
+                        if (!state.currentMood) return undefined;
+                        const prefs = getMoodPreferences(state.currentMood);
+                        const liked = prefs.liked.slice(0, 5).map(t => `${t.name} - ${t.artist}`);
+                        return liked.length ? liked : undefined;
+                    })(),
+                    mood_disliked: (() => {
+                        if (!state.currentMood) return undefined;
+                        const prefs = getMoodPreferences(state.currentMood);
+                        const disliked = prefs.disliked.slice(0, 5).map(t => `${t.name} - ${t.artist}`);
+                        return disliked.length ? disliked : undefined;
+                    })(),
+                })
             });
             const data = await res.json();
 
@@ -1990,48 +1997,73 @@ function initSpotifyOAuth() {
 
 // ========== CROSS-DEVICE SYNC UI ==========
 
-let syncPanelEl = null;
+let syncModalEl = null;
 
 export function initSyncUI() {
-    // Create the sync panel in the More menu or settings area
-    const moreMenu = document.querySelector('.more-menu') || document.querySelector('#settings-panel');
-    if (!moreMenu) return;
-
-    syncPanelEl = document.createElement('div');
-    syncPanelEl.id = 'sync-panel';
-    syncPanelEl.className = 'sync-panel hidden';
-    syncPanelEl.innerHTML = `
-        <div class="sync-header">
-            <span>Sync Devices</span>
-            <label class="sync-toggle-label">
-                <input type="checkbox" id="sync-toggle" ${state.syncEnabled ? 'checked' : ''} />
-                <span class="sync-toggle-text">${state.syncEnabled ? 'ON' : 'OFF'}</span>
-            </label>
-        </div>
-        <div class="sync-devices-list" id="sync-devices-list">
-            <p class="sync-hint">Toggle on to discover devices</p>
-        </div>
-        <div class="sync-manual">
-            <input type="text" id="sync-manual-ip" placeholder="Enter IP (e.g., 192.168.1.100:8000)"
-                value="${localStorage.getItem('freedify_sync_last_ip') || ''}" />
-            <button id="sync-manual-connect">Connect</button>
+    // Create sync modal (same pattern as Smart Playlist modal)
+    syncModalEl = document.createElement('div');
+    syncModalEl.id = 'sync-modal';
+    syncModalEl.className = 'ai-modal hidden';
+    syncModalEl.innerHTML = `
+        <div class="ai-modal-overlay"></div>
+        <div class="ai-modal-content">
+            <div class="ai-modal-header">
+                <h2>🔗 Sync Devices</h2>
+                <button class="ai-modal-close" id="sync-modal-close" title="Close">×</button>
+            </div>
+            <div class="sync-panel">
+                <div class="sync-header">
+                    <span>Enable Sync</span>
+                    <label class="sync-switch">
+                        <input type="checkbox" id="sync-toggle" ${state.syncEnabled ? 'checked' : ''} />
+                        <span class="sync-switch-slider"></span>
+                    </label>
+                </div>
+                <div class="sync-role-section">
+                    <label class="sync-role-label">This device is:</label>
+                    <div class="sync-role-buttons">
+                        <button class="sync-role-btn ${state.syncRole === 'player' ? 'active' : ''}" data-role="player">🔊 Speaker</button>
+                        <button class="sync-role-btn ${state.syncRole === 'remote' ? 'active' : ''}" data-role="remote">📱 Remote</button>
+                    </div>
+                    <p class="sync-role-hint" id="sync-role-hint">${state.syncRole === 'remote' ? 'Audio plays on the other device. This device controls playback.' : 'Audio plays here. Other devices act as remotes.'}</p>
+                </div>
+                <div class="sync-devices-list" id="sync-devices-list">
+                    <p class="sync-hint">Toggle on to discover devices on your network</p>
+                </div>
+                <div class="sync-manual">
+                    <input type="text" id="sync-manual-ip" placeholder="Enter IP (e.g., 192.168.1.100:8000)"
+                        value="${escapeHtml(localStorage.getItem('freedify_sync_last_ip') || '')}" />
+                    <button id="sync-manual-connect">Connect</button>
+                </div>
+            </div>
         </div>
     `;
+    document.body.appendChild(syncModalEl);
 
-    // Insert into More menu
-    moreMenu.appendChild(syncPanelEl);
+    // Open from search-more-menu button
+    const syncMenuBtn = document.getElementById('sync-menu-btn');
+    syncMenuBtn?.addEventListener('click', () => {
+        syncModalEl.classList.remove('hidden');
+        document.getElementById('search-more-menu')?.classList.add('hidden');
+    });
+
+    // Close handlers
+    syncModalEl.querySelector('#sync-modal-close').addEventListener('click', () => {
+        syncModalEl.classList.add('hidden');
+    });
+    syncModalEl.querySelector('.ai-modal-overlay').addEventListener('click', () => {
+        syncModalEl.classList.add('hidden');
+    });
 
     // Toggle handler
-    const toggle = syncPanelEl.querySelector('#sync-toggle');
+    const toggle = syncModalEl.querySelector('#sync-toggle');
     toggle.addEventListener('change', async () => {
         if (toggle.checked) {
-            // Try mDNS discovery first
             const devices = await discoverDevices();
             renderDeviceList(devices);
             if (devices.length > 0) {
                 enableSync(`http://${devices[0].ip}:${devices[0].port}`);
             } else {
-                // Fall back to manual IP
                 const lastIp = localStorage.getItem('freedify_sync_last_ip');
                 if (lastIp) {
                     enableSync(lastIp);
@@ -2039,19 +2071,70 @@ export function initSyncUI() {
                     showToast('No devices found. Enter IP manually.');
                 }
             }
-            syncPanelEl.querySelector('.sync-toggle-text').textContent = 'ON';
         } else {
             disableSync();
-            syncPanelEl.querySelector('.sync-toggle-text').textContent = 'OFF';
         }
     });
 
     // Manual connect handler
-    syncPanelEl.querySelector('#sync-manual-connect').addEventListener('click', () => {
-        const ip = syncPanelEl.querySelector('#sync-manual-ip').value.trim();
+    syncModalEl.querySelector('#sync-manual-connect').addEventListener('click', () => {
+        const ip = syncModalEl.querySelector('#sync-manual-ip').value.trim();
         if (!ip) return;
         const url = ip.startsWith('http') ? ip : `http://${ip}`;
         enableSync(url);
+        syncModalEl.classList.add('hidden');
+    });
+
+    // Device role selector
+    syncModalEl.querySelectorAll('.sync-role-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const role = btn.dataset.role;
+            state.syncRole = role;
+            localStorage.setItem('freedify_sync_role', JSON.stringify(role));
+
+            // Update button active states
+            syncModalEl.querySelectorAll('.sync-role-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update hint text
+            const hint = syncModalEl.querySelector('#sync-role-hint');
+            if (hint) {
+                hint.textContent = role === 'remote'
+                    ? 'Audio plays on the other device. This device controls playback.'
+                    : 'Audio plays here. Other devices act as remotes.';
+            }
+
+            // Apply role immediately
+            const player = document.getElementById('audio-player');
+            const player2 = document.getElementById('audio-player-2');
+            if (role === 'remote') {
+                if (player) player.muted = true;
+                if (player2) player2.muted = true;
+                showToast('Remote mode — audio plays on the other device');
+            } else {
+                if (player) player.muted = state.muted;
+                if (player2) player2.muted = state.muted;
+                showToast('Speaker mode — audio plays on this device');
+            }
+
+            // Refresh the indicator label
+            if (state.syncEnabled) updateSyncIndicator('connected');
+        });
+    });
+
+    // Apply saved role on init (if remote, mute audio)
+    if (state.syncRole === 'remote' && state.syncEnabled) {
+        const player = document.getElementById('audio-player');
+        const player2 = document.getElementById('audio-player-2');
+        if (player) player.muted = true;
+        if (player2) player2.muted = true;
+    }
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && syncModalEl && !syncModalEl.classList.contains('hidden')) {
+            syncModalEl.classList.add('hidden');
+        }
     });
 
     // Listen for status changes
@@ -2077,27 +2160,21 @@ function renderDeviceList(devices) {
 }
 
 function updateSyncIndicator(status) {
-    let indicator = document.getElementById('sync-indicator');
-    if (!indicator) {
-        // Create indicator in player bar
-        const playerBar = document.querySelector('.player-controls') || document.querySelector('.player-bar');
-        if (!playerBar) return;
-        indicator = document.createElement('span');
-        indicator.id = 'sync-indicator';
-        indicator.title = 'Cross-Device Sync';
-        playerBar.appendChild(indicator);
-    }
+    const indicator = document.getElementById('sync-indicator');
+    if (!indicator) return;
 
     if (status === 'connected') {
-        indicator.textContent = '\u{1F517}';
-        indicator.style.display = 'inline';
-        indicator.title = 'Synced';
-    } else if (status === 'connecting') {
-        indicator.textContent = '\u23F3';
-        indicator.style.display = 'inline';
-        indicator.title = 'Connecting...';
+        const roleLabel = state.syncRole === 'remote' ? 'Remote' : 'Playing';
+        indicator.textContent = `🔗 ${roleLabel}`;
+        indicator.classList.remove('hidden');
+        indicator.title = `Synced — ${roleLabel}`;
+    } else if (status === 'connecting' || (status === 'disconnected' && state.syncEnabled)) {
+        // Keep visible during reconnect to avoid layout jitter
+        indicator.textContent = '🔗 …';
+        indicator.classList.remove('hidden');
+        indicator.title = 'Reconnecting...';
     } else {
-        indicator.style.display = 'none';
+        indicator.classList.add('hidden');
     }
 }
 

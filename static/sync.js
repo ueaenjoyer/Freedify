@@ -240,11 +240,15 @@ function applyRemoteState(payload, isFull) {
             player.pause();
             state.isPlaying = false;
         }
+        // Keep audio muted if this device is in remote mode
+        if (state.syncRole === 'remote') {
+            player.muted = true;
+        }
         emit('updatePlayButton');
     }
 
-    // Apply volume with 200ms ramp
-    if (payload.volume !== undefined && payload.volume !== state.volume) {
+    // Apply volume with 200ms ramp (skip if remote — audio is muted)
+    if (payload.volume !== undefined && payload.volume !== state.volume && state.syncRole !== 'remote') {
         state.volume = payload.volume;
         if (audio.audioContext && audio.gainNode1) {
             const gainNode = audio.activePlayer === 1 ? audio.gainNode1 : audio.gainNode2;

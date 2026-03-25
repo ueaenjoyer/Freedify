@@ -204,16 +204,22 @@ Respond ONLY with valid JSON:
         self,
         description: str,
         duration_mins: int = 60,
-        track_count: int = 15
+        track_count: int = 15,
+        mood: Optional[str] = None,
+        mood_liked: Optional[List[str]] = None,
+        mood_disliked: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Generate a playlist from a natural language description.
-        
+
         Args:
             description: Playlist description like "morning coffee jazz" or "high energy workout"
             duration_mins: Target duration in minutes
             track_count: Number of tracks to generate
-            
+            mood: Current mood context (e.g. "Focus", "Workout", or free-form)
+            mood_liked: Tracks the user enjoys in this mood
+            mood_disliked: Tracks the user dislikes in this mood
+
         Returns:
             Dict with tracks (artist + title pairs), playlist name, description
         """
@@ -232,10 +238,20 @@ Respond ONLY with valid JSON:
             # Estimate tracks based on duration (avg 3.5 min per track)
             estimated_tracks = min(max(duration_mins // 4, 5), track_count)
             
+            mood_context = ""
+            if mood:
+                mood_context += f'\nMOOD/VIBE: "{mood}"'
+            if mood_liked:
+                liked_str = ", ".join(mood_liked[:5])
+                mood_context += f"\nUSER FAVORITES IN THIS MOOD: {liked_str}"
+            if mood_disliked:
+                disliked_str = ", ".join(mood_disliked[:5])
+                mood_context += f"\nAVOID TRACKS LIKE: {disliked_str}"
+
             prompt = f"""You are a music curator. Create a playlist based on this description.
 
 DESCRIPTION: "{description}"
-TARGET DURATION: ~{duration_mins} minutes ({estimated_tracks} tracks)
+TARGET DURATION: ~{duration_mins} minutes ({estimated_tracks} tracks){mood_context}
 
 TASK: Generate a cohesive playlist that matches the vibe and purpose.
 
@@ -244,6 +260,7 @@ RULES:
 2. Consider flow and energy progression
 3. Vary artists while maintaining style consistency
 4. Include specific, real songs (not made-up titles)
+5. If mood preferences are provided, lean toward the user's taste and avoid disliked styles
 
 Respond ONLY with valid JSON:
 {{

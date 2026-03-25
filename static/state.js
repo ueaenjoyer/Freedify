@@ -63,6 +63,7 @@ export const state = {
         Commute: { liked: [], disliked: [] }
     }),
     syncEnabled: safeLoad('freedify_sync_enabled', false),
+    syncRole: safeLoad('freedify_sync_role', 'player'), // 'player' or 'remote'
     syncConnectedDevices: [],
     syncLastAppliedTimestamp: 0,
 };

@@ -9,23 +9,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [1.4.3] - 2026-03-25
 
 ### Added
-- **Mood-Based Discovery** — AI Radio now accepts mood context (Focus, Workout, Chill, Party, Late Night, Commute) plus free-form mood descriptions
-- Mood selector UI with predefined buttons and free-form text input
+- **Mood-Aware Smart Playlists** — Smart Playlist and AI Radio now learn your taste per mood
+- Mood selector (Focus, Workout, Chill, Party, Late Night, Commute) plus free-form moods, integrated directly into the Smart Playlist modal
 - Mood taxonomy tracking: tracks played >75% are liked, skipped <50% are disliked per mood
+- Smart Playlist generation now uses mood preferences (liked/disliked tracks) for personalized results
 - Rolling 7-day mood usage stats shown on each mood button
 - Collapsible mood history panel showing top moods this week
 - Mood data syncs to Google Drive alongside playlists and library
-- Mood preferences persist across sessions and survive page reloads
-- Gemini fallback: if mood-enhanced AI Radio fails, retries without mood context
+- Gemini fallback: if mood-enhanced generation fails, retries without mood context
+- Duration selector changed from slider to dropdown (30 min – 4 hours)
 - **Cross-Device Queue Sync** — Real-time playback sync across devices on same network
+- Sync Devices modal accessible from More search menu
+- Speaker/Remote device role selector — choose which device plays audio vs. acts as remote control
 - mDNS auto-discovery of Freedify instances on local network
 - Manual IP entry for Tailscale or cross-network setups
 - WebSocket relay for instant state propagation (queue, track, position, volume, repeat mode)
-- Sync toggle (off by default) — saves memory when not in use
+- Sync toggle with proper on/off switch (off by default)
 - Volume syncs with 200ms ramp to prevent audio jumps
 - Crossfade-aware sync that defers track changes during transitions
-- Sync indicator in player bar showing connection status
+- Sync indicator next to format badge showing connection status and device role
 - Automatic reconnection with exponential backoff (3 retries)
+
+### Fixed
+- Sync indicator no longer causes player control jitter during reconnection
 
 ---
 
