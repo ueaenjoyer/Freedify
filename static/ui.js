@@ -6,6 +6,7 @@
 import { state } from './state.js';
 import { escapeHtml, showToast } from './utils.js';
 import { emit } from './event-bus.js';
+import { getMoodStatsForWeek } from './data.js';
 import {
     $, $$, loadingOverlay, loadingText, errorMessage, errorText,
     errorRetry, resultsContainer, searchInput,
@@ -325,4 +326,72 @@ if (hifiBtn) {
     });
 
     updateHifiButtonUI();
+}
+
+// ========== MOOD SELECTOR ==========
+
+const MOOD_LIST = ['Focus', 'Workout', 'Chill', 'Party', 'Late Night', 'Commute'];
+
+export function renderMoodSelector(containerEl) {
+    if (!containerEl) return;
+
+    const stats = MOOD_LIST.map(m => ({ mood: m, count: getMoodStatsForWeek(m) }));
+    // Escape user-provided mood for safe injection into innerHTML
+    const escapedMood = state.currentMood ? escapeHtml(state.currentMood) : '';
+    const isFreeform = state.currentMood && !MOOD_LIST.includes(state.currentMood);
+
+    containerEl.innerHTML = `
+        <div class="mood-selector">
+            <div class="mood-buttons">
+                ${MOOD_LIST.map(m => {
+                    const count = stats.find(s => s.mood === m)?.count || 0;
+                    const active = state.currentMood === m ? 'active' : '';
+                    return `<button class="mood-btn ${active}" data-mood="${m}">
+                        ${m}${count > 0 ? ` <span class="mood-count">(${count})</span>` : ''}
+                    </button>`;
+                }).join('')}
+            </div>
+            <div class="mood-freeform">
+                <input type="text" id="mood-freeform-input"
+                    placeholder="Or describe your mood..."
+                    value="${isFreeform ? escapedMood : ''}" />
+            </div>
+            ${state.currentMood ? `<div class="mood-active-label">AI Radio — Mood: ${escapedMood}</div>` : ''}
+        </div>
+    `;
+
+    // Button click handlers
+    containerEl.querySelectorAll('.mood-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mood = btn.dataset.mood;
+            if (state.currentMood === mood) {
+                // Deselect
+                state.currentMood = null;
+            } else {
+                state.currentMood = mood;
+            }
+            localStorage.setItem('freedify_current_mood', JSON.stringify(state.currentMood));
+            const freeformInput = containerEl.querySelector('#mood-freeform-input');
+            if (freeformInput) freeformInput.value = '';
+            renderMoodSelector(containerEl); // Re-render
+            emit('moodChanged', state.currentMood);
+        });
+    });
+
+    // Free-form input handler
+    const freeformInput = containerEl.querySelector('#mood-freeform-input');
+    if (freeformInput) {
+        freeformInput.addEventListener('change', () => {
+            const val = freeformInput.value.trim();
+            if (val) {
+                state.currentMood = val;
+                containerEl.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('active'));
+            } else {
+                state.currentMood = null;
+            }
+            localStorage.setItem('freedify_current_mood', JSON.stringify(state.currentMood));
+            renderMoodSelector(containerEl);
+            emit('moodChanged', state.currentMood);
+        });
+    }
 }
