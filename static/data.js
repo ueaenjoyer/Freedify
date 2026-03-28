@@ -207,6 +207,7 @@ export function addToHistory(track) {
         artists: track.artists,
         album: track.album || '',
         album_art: track.album_art || track.image || '/static/icon.svg',
+        album_id: track.album_id || '',
         isrc: track.isrc || track.id,
         duration: track.duration || '0:00',
         listenedAt: Date.now(),

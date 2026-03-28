@@ -27,7 +27,7 @@ import {
 } from './playback.js';
 import {
     showLoading, hideLoading, showError, showEmptyState,
-    playHistoryTrack, searchArtist, openPlaylistById, showLibraryView,
+    playHistoryTrack, openJumpBackInAlbum, searchArtist, openPlaylistById, showLibraryView,
     updateHifiButtonUI,
 } from './ui.js';
 import {
@@ -292,6 +292,7 @@ window.isEpisodePlayed = isEpisodePlayed;
 window.setPodcastTags = setPodcastTags;
 window.getPodcastTags = getPodcastTags;
 window.playHistoryTrack = playHistoryTrack;
+window.openJumpBackInAlbum = openJumpBackInAlbum;
 window.searchArtist = searchArtist;
 window.openPlaylistById = openPlaylistById;
 window.showLibraryView = showLibraryView;

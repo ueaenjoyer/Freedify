@@ -620,8 +620,11 @@ async def get_album(album_id: str):
                     # Fallback to search if no direct match
                     album["audio_available"] = True
         else:
-            # Unknown source - try Deezer
-            album = await deezer_service.get_album(album_id)
+            # Unknown source - try Spotify first (raw Spotify IDs from track search results),
+            # then fall back to Deezer
+            album = await spotify_service.get_album(album_id)
+            if not album:
+                album = await deezer_service.get_album(album_id)
         
         if not album:
             raise HTTPException(status_code=404, detail="Album not found")

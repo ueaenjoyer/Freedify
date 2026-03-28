@@ -72,11 +72,11 @@ export function showEmptyState() {
                     <h3 class="dashboard-title">🎵 Jump Back In</h3>
                     <div class="dashboard-grid">
                         ${recentAlbums.map(track => `
-                            <div class="dashboard-card" data-track-id="${track.id}" onclick="playHistoryTrack('${track.id}')">
+                            <div class="dashboard-card" data-track-id="${escapeHtml(track.id)}" onclick="openJumpBackInAlbum('${escapeHtml(track.id)}')">
                                 <img src="${track.album_art || '/static/icon.svg'}" alt="${escapeHtml(track.album || track.name)}" loading="lazy">
                                 <div class="dashboard-card-info">
-                                    <p class="dashboard-card-title">${escapeHtml(track.album || track.name)}</p>
-                                    <p class="dashboard-card-subtitle">${escapeHtml(track.artists)}</p>
+                                    <p class="dashboard-card-title">${escapeHtml(track.artists)}</p>
+                                    <p class="dashboard-card-subtitle">${escapeHtml(track.album || track.name)}</p>
                                 </div>
                             </div>
                         `).join('')}
@@ -183,6 +183,30 @@ export function playHistoryTrack(trackId) {
 
         emit('loadTrack', track);
     }
+}
+
+export async function openJumpBackInAlbum(trackId) {
+    const track = state.history.find(t => t.id === trackId);
+    if (!track) { playHistoryTrack(trackId); return; }
+
+    if (track.album_id) {
+        window.openAlbum(track.album_id);
+        return;
+    }
+
+    // No stored album_id — search for the album by name + artist
+    const query = (track.album || track.name) + ' ' + track.artists;
+    try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=album`);
+        const data = await res.json();
+        if (data.results && data.results.length > 0 && data.results[0].id) {
+            window.openAlbum(data.results[0].id);
+            return;
+        }
+    } catch (e) {}
+
+    // Album search failed — fall back to playing the track
+    playHistoryTrack(trackId);
 }
 
 export function searchArtist(artistName) {

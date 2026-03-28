@@ -106,6 +106,10 @@ async def search_tracks(query: str, limit: int = 20, offset: int = 0) -> List[Di
         api_quality = track.get("audioQuality", "LOSSLESS")
         is_hires = "HI_RES" in str(api_quality).upper()
 
+        tidal_album_id = ""
+        if "album" in track and isinstance(track["album"], dict) and "id" in track["album"]:
+            tidal_album_id = f"td_{track['album']['id']}"
+
         results.append({
             "id": str(track["id"]),
             "name": track["title"],
@@ -113,6 +117,7 @@ async def search_tracks(query: str, limit: int = 20, offset: int = 0) -> List[Di
             "artists": artist_name,
             "artist": artist_name,
             "album": album_name,
+            "album_id": tidal_album_id,
             "duration": duration_str,
             "duration_ms": duration_s * 1000,
             "album_art": cover_url,
