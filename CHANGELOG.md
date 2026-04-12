@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.4.7] - 2026-04-12
+
+### Added
+- **Supabase Cloud Sync** — Full account-based cloud sync backed by Supabase PostgreSQL. All user data (library, playlists, history, resume positions, podcast/audiobook favorites, episode tracking, queue state, and settings) syncs automatically across any device logged into the same account. No manual export/import required.
+- **Account System** — Sign up and log in with email + password via the new "Cloud Sync" section in Settings. Accounts are managed through Supabase Auth (JWT-based). Token persisted in `localStorage` for seamless re-login across sessions.
+- **`cloud-sync.js` module** — New frontend module handling all cloud sync logic: `markDirty()` debounce-push (2s), `pullAll()` on login/startup, `pushAll()` for initial data migration, and `cloudLogin` / `cloudSignup` / `cloudLogout` auth helpers.
+- **Auto-push on data writes** — `markDirty(key)` added to every `save*()` function in `data.js` and `saveQueueToStorage()` in `playback.js`. Any local write automatically schedules a cloud push with a 2-second debounce to batch rapid changes.
+- **Resume position unit conversion** — Web app stores podcast/audiobook resume positions in seconds; Supabase stores them in milliseconds (matching Android Auto's native format). `cloud-sync.js` converts automatically in both directions.
+- **Server-side sync endpoints** (`app/main.py`):
+  - `POST /api/auth/signup` — create Supabase account
+  - `POST /api/auth/login` — log in, receive JWT
+  - `GET /api/cloud/sync/all` — pull all sync keys for authenticated user
+  - `GET /api/cloud/sync/{data_key}` — pull a single key
+  - `POST /api/cloud/sync/{data_key}` — push / upsert a single key
+- **Cloud Sync UI** — Login/signup form and logged-in panel added to Settings modal. Includes sync status badge (● Synced / ● Syncing... / ● Error), Sync Now (pull), and Push All buttons.
+- **Crossfade/gapless playback speed propagation** (`audio-engine.js`) — Playback speed and `preservesPitch` are now correctly applied to the new audio player during both crossfade and gapless track switches, preventing podcasts/audiobooks from resetting to 1× speed on track change.
+
+### Changed
+- **Supabase table schema** — `user_sync_data` uses a composite primary key `(user_id, data_key)` instead of a separate auto-increment `id` column, making upserts reliable without needing `on_conflict` hints.
+
+---
+
 ## [1.4.6] - 2026-03-29
 
 ### Added

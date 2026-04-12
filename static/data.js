@@ -6,10 +6,12 @@
 import { state, enforceArrayCap, MAX_LIBRARY_SIZE } from './state.js';
 import { showToast } from './utils.js';
 import { emit } from './event-bus.js';
+import { markDirty } from './cloud-sync.js';
 
 // ========== PLAYLIST MANAGEMENT ==========
 export function savePlaylists() {
     localStorage.setItem('freedify_playlists', JSON.stringify(state.playlists));
+    markDirty('playlists');
 }
 
 export function createPlaylist(name, tracks = []) {
@@ -196,6 +198,7 @@ export async function syncAllWatchedPlaylists(showProgress = true) {
 // ========== LISTENING HISTORY ==========
 export function saveHistory() {
     localStorage.setItem('freedify_history', JSON.stringify(state.history));
+    markDirty('history');
 }
 
 export function addToHistory(track) {
@@ -227,6 +230,7 @@ export function addToHistory(track) {
 // ========== MY LIBRARY (STARRED TRACKS) ==========
 export function saveLibrary() {
     localStorage.setItem('freedify_library', JSON.stringify(state.library));
+    markDirty('library');
 }
 
 export function addToLibrary(track) {
@@ -316,6 +320,7 @@ export function addAllToLibrary(tracks) {
 // ========== PODCAST FAVORITES ==========
 export function savePodcastFavorites() {
     localStorage.setItem('freedify_podcasts', JSON.stringify(state.podcastFavorites));
+    markDirty('podcast_favorites');
 }
 
 export function addPodcastFavorite(podcast) {
@@ -364,6 +369,7 @@ export function togglePodcastFavorite(podcast) {
 // ========== AUDIOBOOK FAVORITES ==========
 export function saveAudiobookFavorites() {
     localStorage.setItem('freedify_audiobooks', JSON.stringify(state.audiobookFavorites));
+    markDirty('audiobook_favorites');
 }
 
 export function addAudiobookFavorite(book) {
@@ -413,6 +419,7 @@ export function toggleAudiobookFavorite(book) {
 // ========== PODCAST EPISODE TRACKING ==========
 export function savePodcastPlayed() {
     localStorage.setItem('freedify_podcast_played', JSON.stringify(state.podcastPlayedEpisodes));
+    markDirty('podcast_played');
 }
 
 export function markEpisodePlayed(episodeId) {
@@ -442,6 +449,7 @@ export function toggleEpisodePlayed(episodeId) {
 // ========== PODCAST RESUME POSITIONS ==========
 export function savePodcastResumePositions() {
     localStorage.setItem('freedify_podcast_resume', JSON.stringify(state.podcastResumePositions));
+    markDirty('resume_positions');
 }
 
 export function saveEpisodePosition(episodeId, seconds) {
@@ -463,6 +471,7 @@ export function clearEpisodePosition(episodeId) {
 // ========== PODCAST HISTORY ==========
 export function savePodcastHistory() {
     localStorage.setItem('freedify_podcast_history', JSON.stringify(state.podcastHistory));
+    markDirty('podcast_history');
 }
 
 export function addToPodcastHistory(episode) {
@@ -484,6 +493,7 @@ export function addToPodcastHistory(episode) {
 // ========== AUDIOBOOK HISTORY ==========
 export function saveAudiobookHistory() {
     localStorage.setItem('freedify_audiobook_history', JSON.stringify(state.audiobookHistory));
+    markDirty('audiobook_history');
 }
 
 export function addToAudiobookHistory(episode) {

@@ -86,6 +86,15 @@ Open [http://localhost:8000](http://localhost:8000) and start streaming! 🎵
 - **Full Library View** - Click "See All" to browse your entire collection
 - **Synced** - Library syncs to Google Drive alongside playlists
 
+### ☁️ Supabase Cloud Sync *(New)*
+- **Account-Based Sync** - Create a free Freedify account (email + password) in the Settings → Cloud Sync section
+- **Automatic** - Every save (library star, playlist edit, resume position, queue change) pushes to the cloud with a 2-second debounce — no manual action needed
+- **Full Coverage** - Syncs: Library, Playlists, History, Podcast & Audiobook Favorites, Episode Tracking, Resume Positions, Queue State, and Settings
+- **Cross-Device** - Log in on any browser or the Android Auto companion app to instantly restore all your data
+- **Android Auto Ready** - Resume positions are stored in milliseconds (Auto app's native format); the web app converts automatically
+- **No Google account required** - Fully self-contained; Supabase is free up to 500 MB (supports thousands of users)
+- **Sync Now / Push All** - Manual controls in Settings for force-pull or full re-upload
+
 ### ☁️ Google Drive Sync
 - **Sync Modal** - Click ☁️ or press `Shift+S` to open the Drive Sync panel
 - **Granular Control** - Choose to sync:
@@ -268,6 +277,52 @@ To enable **Google Drive Sync** and **AI features (Smart Playlist, AI Radio, DJ 
 
 > **Note:** For local development on `localhost`, you may see a "This app isn't verified" warning during sign-in. Click **Advanced → Go to Freedify (unsafe)** to proceed. For production, submit your app for verification in the OAuth consent screen settings.
 
+---
+
+## ☁️ Supabase Cloud Sync Setup
+
+Supabase cloud sync lets users create accounts and automatically sync their library, playlists, history, and settings across any device — including the Android Auto companion app. The free Supabase tier supports thousands of users within its 500 MB limit.
+
+### Step 1: Create a Supabase Project
+
+1. Go to [supabase.com](https://supabase.com) and create a free account
+2. Create a new project and note the **Project URL** and **Service Role Key** (found under Project Settings → API)
+
+### Step 2: Run the Database Schema
+
+In the Supabase **SQL Editor**, click **+** and run:
+
+```sql
+CREATE TABLE user_sync_data (
+    user_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    data_key    TEXT NOT NULL,
+    data_value  JSONB NOT NULL DEFAULT '{}',
+    updated_at  TIMESTAMPTZ DEFAULT NOW(),
+    PRIMARY KEY (user_id, data_key)
+);
+
+ALTER TABLE user_sync_data ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can only access their own data"
+    ON user_sync_data FOR ALL USING (auth.uid() = user_id);
+```
+
+### Step 3: Add Environment Variables
+
+Add to your `.env` file (or Render/Railway dashboard):
+
+```
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_SERVICE_KEY=eyJhbGciOiJ...your-service-role-key...
+```
+
+> **Note:** Use the **Service Role** key (not the anon key). The server proxies all Supabase calls — the key is never exposed to the browser.
+
+### Step 4: Restart and Sign Up
+
+Restart the Freedify server. Open Settings → Cloud Sync, enter an email and password, and click **Sign Up**. Your data will be pushed to Supabase automatically.
+
+---
+
 ### 📱 Mobile Ready
 - **PWA Support** - Install on your phone's home screen
 - **Responsive Design** - Works on any screen size
@@ -405,6 +460,8 @@ When deploying to Render (or other hosts), set these in your Dashboard:
 
 | Variable | Description |
 |----------|-------------|
+| `SUPABASE_URL` | For Cloud Sync — Project URL from Supabase dashboard (Project Settings → API) |
+| `SUPABASE_SERVICE_KEY` | For Cloud Sync — Service Role key from Supabase dashboard (never use anon key) |
 | `PREMIUMIZE_API_KEY` | **Required for Audiobooks** - Get at premiumize.me/account |
 | `PODCASTINDEX_KEY` | For Podcast Search (better results) |
 | `PODCASTINDEX_SECRET` | For Podcast Search (required if KEY is used) |

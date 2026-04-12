@@ -28,6 +28,7 @@ import {
     markEpisodePlayed, saveMoodEvent,
 } from './data.js';
 import { sendTimeUpdate } from './sync.js';
+import { markDirty } from './cloud-sync.js';
 
 // ========== FORWARD DECLARATIONS (set by app.js) ==========
 // These are functions from other modules that playback needs.
@@ -1044,6 +1045,7 @@ function saveQueueToStorage() {
             currentIndex: state.currentIndex
         };
         localStorage.setItem('freedify_queue', JSON.stringify(queueData));
+        markDirty('queue_state');
     } catch (e) {
         console.warn('Could not save queue to storage:', e);
     }

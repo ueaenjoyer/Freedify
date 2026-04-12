@@ -86,6 +86,34 @@
                         <button class="settings-item" id="lastfm-menu-btn">Connect Last.fm</button>
                         <button class="settings-item" id="sync-menu-btn">Sync Devices</button>
                     </div>
+                    <!-- Cloud Sync (Supabase) -->
+                    <div class="settings-section">
+                        <h3 class="settings-section-title">Cloud Sync</h3>
+                        <div id="cloud-sync-section">
+                            <!-- Logged-out state -->
+                            <div id="cloud-auth-form">
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+                                    <input type="email" id="cloud-email" class="settings-input" placeholder="Email" autocomplete="email">
+                                    <input type="password" id="cloud-password" class="settings-input" placeholder="Password" autocomplete="current-password">
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="settings-item" id="cloud-login-btn" style="flex: 1;">Log In</button>
+                                    <button class="settings-item" id="cloud-signup-btn" style="flex: 1; opacity: 0.7;">Sign Up</button>
+                                </div>
+                            </div>
+                            <!-- Logged-in state -->
+                            <div id="cloud-logged-in" class="hidden">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                    <span id="cloud-sync-status" class="cloud-status-badge">● Synced</span>
+                                    <button class="settings-item" id="cloud-logout-btn" style="font-size: 0.8rem; padding: 4px 12px;">Log Out</button>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="settings-item" id="cloud-sync-now-btn" style="flex: 1;">Sync Now</button>
+                                    <button class="settings-item" id="cloud-push-all-btn" style="flex: 1; opacity: 0.7;">Push All</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Cloud & Data -->
                     <div class="settings-section">
                         <h3 class="settings-section-title">Cloud & Data</h3>

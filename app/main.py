@@ -56,6 +56,33 @@ from app.soundcloud_service import search_tracks as soundcloud_search_tracks
 
 from app.cache import cleanup_cache, periodic_cleanup, is_cached, get_cache_path
 
+# ========== SUPABASE CLOUD SYNC ==========
+import jwt as pyjwt
+from fastapi import Header
+
+_supabase_client = None
+def _get_supabase():
+    """Lazy-init Supabase client (only when cloud sync env vars are set)."""
+    global _supabase_client
+    if _supabase_client is None:
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_SERVICE_KEY")
+        if url and key:
+            from supabase import create_client
+            _supabase_client = create_client(url, key)
+    return _supabase_client
+
+def _verify_token(auth_header: str) -> str:
+    """Extract user_id (UUID) from a Supabase JWT in the Authorization header."""
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid token")
+    token = auth_header.split(" ")[1]
+    try:
+        payload = pyjwt.decode(token, options={"verify_signature": False})
+        return payload["sub"]  # Supabase user UUID
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -1810,6 +1837,116 @@ async def discover_devices():
     """Return Freedify instances found on local network via mDNS."""
     devices = await sync_service.discover_devices(timeout=3.0)
     return {"devices": devices}
+
+
+# ========== CLOUD SYNC: AUTH ENDPOINTS ==========
+
+class AuthRequest(BaseModel):
+    email: str
+    password: str
+
+@app.post("/api/auth/signup")
+async def cloud_signup(body: AuthRequest):
+    """Create a new Freedify account via Supabase Auth."""
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Cloud sync is not configured")
+    try:
+        result = sb.auth.sign_up({"email": body.email, "password": body.password})
+        if not result.user:
+            raise HTTPException(status_code=400, detail="Signup failed")
+        return {
+            "user_id": str(result.user.id),
+            "access_token": result.session.access_token if result.session else None
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Cloud signup error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/api/auth/login")
+async def cloud_login(body: AuthRequest):
+    """Log in to an existing Freedify account."""
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Cloud sync is not configured")
+    try:
+        result = sb.auth.sign_in_with_password({"email": body.email, "password": body.password})
+        if not result.user:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        return {
+            "user_id": str(result.user.id),
+            "access_token": result.session.access_token
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Cloud login error: {e}")
+        raise HTTPException(status_code=401, detail=str(e))
+
+# ========== CLOUD SYNC: DATA ENDPOINTS ==========
+
+class SyncPushRequest(BaseModel):
+    data: dict | list | None = None
+
+# NOTE: /all must be registered BEFORE /{data_key} to avoid path parameter capture
+@app.get("/api/cloud/sync/all")
+async def cloud_get_all_sync_data(authorization: str = Header(None)):
+    """Pull ALL sync data for the authenticated user (used on initial load/login)."""
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Cloud sync is not configured")
+    user_id = _verify_token(authorization)
+    try:
+        result = sb.table("user_sync_data") \
+            .select("data_key, data_value, updated_at") \
+            .eq("user_id", user_id) \
+            .execute()
+        return {row["data_key"]: row["data_value"] for row in (result.data or [])}
+    except Exception as e:
+        logger.error(f"Cloud sync pull-all error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/cloud/sync/{data_key}")
+async def cloud_get_sync_data(data_key: str, authorization: str = Header(None)):
+    """Pull sync data for a single category."""
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Cloud sync is not configured")
+    user_id = _verify_token(authorization)
+    try:
+        result = sb.table("user_sync_data") \
+            .select("data_value, updated_at") \
+            .eq("user_id", user_id) \
+            .eq("data_key", data_key) \
+            .maybe_single() \
+            .execute()
+        return result.data or {"data_value": {}, "updated_at": None}
+    except Exception as e:
+        logger.error(f"Cloud sync pull error for {data_key}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/cloud/sync/{data_key}")
+async def cloud_set_sync_data(data_key: str, body: SyncPushRequest, authorization: str = Header(None)):
+    """Push sync data for a single category."""
+    sb = _get_supabase()
+    if not sb:
+        raise HTTPException(status_code=503, detail="Cloud sync is not configured")
+    user_id = _verify_token(authorization)
+    try:
+        sb.table("user_sync_data") \
+            .upsert({
+                "user_id": user_id,
+                "data_key": data_key,
+                "data_value": body.data if body.data is not None else {},
+                "updated_at": "now()"
+            }) \
+            .execute()
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error(f"Cloud sync push error for {data_key}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 if __name__ == "__main__":

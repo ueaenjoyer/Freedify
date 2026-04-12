@@ -58,6 +58,10 @@ import {
     initSync, enableSync, disableSync, connectSync,
     sendFullState, sendDelta, sendTimeUpdate, discoverDevices,
 } from './sync.js';
+import {
+    initCloudSync, cloudLogin, cloudSignup, cloudLogout,
+    pullAll, pushAll, isCloudLoggedIn,
+} from './cloud-sync.js';
 
 // ========== WIRE PLAYBACK DEPENDENCIES ==========
 // Break circular deps by passing function refs to playback module
@@ -380,3 +384,142 @@ initSpotifyOAuth();
 initDataExportImport();
 initSync();
 initSyncUI();
+initCloudSync();
+
+// Window globals for cloud sync UI
+window.cloudLogin = cloudLogin;
+window.cloudSignup = cloudSignup;
+window.cloudLogout = cloudLogout;
+window.cloudPullAll = pullAll;
+window.cloudPushAll = pushAll;
+window.isCloudLoggedIn = isCloudLoggedIn;
+
+// ========== CLOUD SYNC UI WIRING ==========
+(() => {
+    const authForm = document.getElementById('cloud-auth-form');
+    const loggedInPanel = document.getElementById('cloud-logged-in');
+    const statusBadge = document.getElementById('cloud-sync-status');
+    const emailInput = document.getElementById('cloud-email');
+    const passwordInput = document.getElementById('cloud-password');
+    const loginBtn = document.getElementById('cloud-login-btn');
+    const signupBtn = document.getElementById('cloud-signup-btn');
+    const logoutBtn = document.getElementById('cloud-logout-btn');
+    const syncNowBtn = document.getElementById('cloud-sync-now-btn');
+    const pushAllBtn = document.getElementById('cloud-push-all-btn');
+
+    if (!authForm || !loggedInPanel) return;
+
+    function updateCloudUI() {
+        if (isCloudLoggedIn()) {
+            authForm.classList.add('hidden');
+            loggedInPanel.classList.remove('hidden');
+        } else {
+            authForm.classList.remove('hidden');
+            loggedInPanel.classList.add('hidden');
+        }
+    }
+
+    // Initial state
+    updateCloudUI();
+
+    // Login
+    loginBtn?.addEventListener('click', async () => {
+        const email = emailInput?.value?.trim();
+        const password = passwordInput?.value;
+        if (!email || !password) { showToast('Enter email and password'); return; }
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'Logging in...';
+        try {
+            await cloudLogin(email, password);
+            showToast('Logged in — syncing...');
+            updateCloudUI();
+            await pullAll();
+            showToast('Cloud sync complete! Reloading...');
+            setTimeout(() => location.reload(), 1000);
+        } catch (e) {
+            showToast(e.message || 'Login failed');
+        }
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Log In';
+    });
+
+    // Signup
+    signupBtn?.addEventListener('click', async () => {
+        const email = emailInput?.value?.trim();
+        const password = passwordInput?.value;
+        if (!email || !password) { showToast('Enter email and password'); return; }
+        if (password.length < 6) { showToast('Password must be at least 6 characters'); return; }
+        signupBtn.disabled = true;
+        signupBtn.textContent = 'Creating...';
+        try {
+            const result = await cloudSignup(email, password);
+            if (result.access_token) {
+                showToast('Account created — pushing data...');
+                updateCloudUI();
+                await pushAll();
+                showToast('All data synced to cloud');
+            } else {
+                showToast('Check your email to verify your account');
+            }
+        } catch (e) {
+            showToast(e.message || 'Signup failed');
+        }
+        signupBtn.disabled = false;
+        signupBtn.textContent = 'Sign Up';
+    });
+
+    // Logout
+    logoutBtn?.addEventListener('click', () => {
+        cloudLogout();
+        updateCloudUI();
+        showToast('Logged out of cloud sync');
+    });
+
+    // Sync Now (pull)
+    syncNowBtn?.addEventListener('click', async () => {
+        syncNowBtn.disabled = true;
+        syncNowBtn.textContent = 'Syncing...';
+        await pullAll();
+        syncNowBtn.disabled = false;
+        syncNowBtn.textContent = 'Sync Now';
+        showToast('Cloud sync complete');
+    });
+
+    // Push All
+    pushAllBtn?.addEventListener('click', async () => {
+        pushAllBtn.disabled = true;
+        pushAllBtn.textContent = 'Pushing...';
+        await pushAll();
+        pushAllBtn.disabled = false;
+        pushAllBtn.textContent = 'Push All';
+        showToast('All data pushed to cloud');
+    });
+
+    // Status badge updates
+    on('cloudSyncStatus', (status) => {
+        if (!statusBadge) return;
+        statusBadge.className = 'cloud-status-badge';
+        switch (status) {
+            case 'syncing':
+                statusBadge.textContent = '● Syncing...';
+                statusBadge.classList.add('syncing');
+                break;
+            case 'synced':
+                statusBadge.textContent = '● Synced';
+                break;
+            case 'error':
+                statusBadge.textContent = '● Error';
+                statusBadge.classList.add('error');
+                break;
+            case 'logged_out':
+                updateCloudUI();
+                break;
+        }
+    });
+
+    // Allow Enter key to trigger login from password field
+    passwordInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') loginBtn?.click();
+    });
+})();
+

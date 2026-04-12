@@ -56,6 +56,16 @@ export function performCrossfade() {
 
     audio.activePlayer = audio.activePlayer === 1 ? 2 : 1;
 
+    // Propagate playback speed & pitch preservation to the new player
+    const currentTrack = state.queue?.[state.currentIndex];
+    if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
+        newPlayer.preservesPitch = true;
+        newPlayer.playbackRate = state.playbackSpeed;
+    } else {
+        newPlayer.preservesPitch = true;
+        newPlayer.playbackRate = 1.0;
+    }
+
     newPlayer.play().catch(e => console.error('Crossfade play error:', e));
 
     fadeOutGain.gain.setValueAtTime(1, now);
@@ -81,6 +91,16 @@ export function performGaplessSwitch() {
 
     if (fadeOutGain) fadeOutGain.gain.value = 0;
     if (fadeInGain) fadeInGain.gain.value = 1;
+
+    // Propagate playback speed & pitch preservation to the new player
+    const currentTrack = state.queue?.[state.currentIndex];
+    if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
+        newPlayer.preservesPitch = true;
+        newPlayer.playbackRate = state.playbackSpeed;
+    } else {
+        newPlayer.preservesPitch = true;
+        newPlayer.playbackRate = 1.0;
+    }
 
     newPlayer.play().catch(e => console.error('Gapless play error:', e));
     oldPlayer.pause();
