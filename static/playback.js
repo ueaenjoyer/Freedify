@@ -321,9 +321,18 @@ export async function updateFormatBadge(audioSrc) {
 
 // ========== LOAD TRACK ==========
 export async function loadTrack(track) {
-    if (audio.loadInProgress) return;
+    // Force-clear stale loadInProgress guard (e.g. previous load froze mid-flight)
+    if (audio.loadInProgress) {
+        if (audio._loadStartedAt && Date.now() - audio._loadStartedAt > 40000) {
+            console.warn('loadInProgress was stale (>40s) — force-clearing');
+            audio.loadInProgress = false;
+        } else {
+            return;
+        }
+    }
 
     audio.loadInProgress = true;
+    audio._loadStartedAt = Date.now();
     if (showLoading) showLoading(`Loading "${track.name}"...`);
     state.scrobbledCurrent = false;
     playerBar.classList.remove('hidden');
@@ -515,7 +524,15 @@ function logMoodEvent() {
 }
 
 export function playNext(forceAdvance) {
-    if (audio.transitionInProgress) return;
+    // Clear stale transition guard (>5s means something went wrong)
+    if (audio.transitionInProgress) {
+        if (audio._transitionStartedAt && Date.now() - audio._transitionStartedAt > 5000) {
+            console.warn('transitionInProgress was stale (>5s) — force-clearing');
+            audio.transitionInProgress = false;
+        } else {
+            return;
+        }
+    }
 
     const currentTrack = state.queue[state.currentIndex];
     const player = getActivePlayer();
@@ -544,6 +561,8 @@ export function playNext(forceAdvance) {
         if (audio.preloadedReady && audio.preloadedPlayer && audio.preloadedTrackId === state.queue[state.currentIndex]?.id) {
             audio.preloadedTrackId = null;
             audio.preloadedReady = false;
+            audio.transitionInProgress = true;
+            audio._transitionStartedAt = Date.now();
             updatePlayerUI();
             updateQueueUI();
             updateFullscreenUI(state.queue[state.currentIndex]);
@@ -552,6 +571,8 @@ export function playNext(forceAdvance) {
             } else {
                 performGaplessSwitch();
             }
+            // Clear transition flag after switch completes
+            setTimeout(() => { audio.transitionInProgress = false; }, 2000);
             updateFormatBadge(getActivePlayer().src);
             if (updateMediaSession) updateMediaSession(state.queue[state.currentIndex]);
             addToHistory(state.queue[state.currentIndex]);
@@ -597,18 +618,36 @@ function handlePlay() {
 
 function handlePause(e) {
     if (e.target === getActivePlayer()) {
-        state.isPlaying = false;
-        emit('playStateChanged', false);
-        updatePlayButton();
-        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
-
         const currentTrack = state.queue[state.currentIndex];
         const player = getActivePlayer();
+
+        // Save podcast/audiobook position on any pause
         if (currentTrack && (currentTrack.source === 'podcast' || currentTrack.source === 'audiobook')) {
             if (player.currentTime > 5) {
                 saveEpisodePosition(currentTrack.id, player.currentTime);
             }
         }
+
+        // Check if this is a background/system interrupt rather than user action.
+        // If the track ended naturally, handleEnded will take care of advancing.
+        // If the user didn't pause manually but the player stopped (e.g. Android
+        // background throttling, network hiccup), try to resume after a short delay.
+        if (state.isPlaying && !player.ended && player.readyState >= 2) {
+            // Likely a background interrupt — attempt auto-resume
+            setTimeout(() => {
+                const p = getActivePlayer();
+                if (state.isPlaying && p.paused && !p.ended && p.readyState >= 2) {
+                    console.warn('Auto-resuming after unexpected pause');
+                    p.play().catch(() => {});
+                }
+            }, 1500);
+            return; // Don't update UI state to paused — we're trying to recover
+        }
+
+        state.isPlaying = false;
+        emit('playStateChanged', false);
+        updatePlayButton();
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     }
 }
 
@@ -623,7 +662,8 @@ function handleProgress() {
 }
 
 function handleEnded(e) {
-    if (audio.transitionInProgress) return;
+    // Always clear transition flags when a track ends — they're moot now
+    audio.transitionInProgress = false;
     if (audio.crossfadeTimeout) {
         clearTimeout(audio.crossfadeTimeout);
         audio.crossfadeTimeout = null;
@@ -727,6 +767,34 @@ function handlePlaying() {
     if (audio.stallRecoveryTimer) { clearTimeout(audio.stallRecoveryTimer); audio.stallRecoveryTimer = null; }
     if (audio.waitingWatchdog) { clearTimeout(audio.waitingWatchdog); audio.waitingWatchdog = null; }
 }
+
+// ========== PLAYBACK WATCHDOG ==========
+// Periodic check: if we think we're playing but audio is stalled/paused,
+// attempt recovery. This catches edge cases missed by event handlers
+// (e.g. Android background throttling, frozen timers).
+setInterval(() => {
+    if (!state.isPlaying) return;
+    const player = getActivePlayer();
+    if (!player || !player.src) return;
+
+    // Player is paused but we think we're playing
+    if (player.paused && !player.ended) {
+        if (player.readyState >= 2) {
+            console.warn('[Watchdog] Player paused unexpectedly — resuming');
+            player.play().catch(() => {});
+        } else if (player.readyState === 0 && state.currentIndex < state.queue.length - 1) {
+            // Player completely lost its source — skip to next
+            console.warn('[Watchdog] Player source lost — advancing to next track');
+            playNext(true);
+        }
+    }
+
+    // Player reached the end but handleEnded didn't fire (rare)
+    if (!player.paused && player.ended && state.currentIndex < state.queue.length - 1) {
+        console.warn('[Watchdog] Track ended but handler missed — advancing');
+        playNext(true);
+    }
+}, 5000);
 
 // ========== BIND EVENTS ==========
 audioPlayer.addEventListener('play', handlePlay);

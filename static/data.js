@@ -91,6 +91,7 @@ export function deletePlaylist(playlistId) {
 // ========== WATCHED PLAYLISTS ==========
 export function saveWatchedPlaylists() {
     localStorage.setItem('freedify_watched', JSON.stringify(state.watchedPlaylists));
+    markDirty('watched_playlists');
 }
 
 export function watchPlaylist(spotifyId, name, coverArt, tracks) {
@@ -105,12 +106,26 @@ export function watchPlaylist(spotifyId, name, coverArt, tracks) {
         trackHashes.add(key);
     });
 
+    // Store full track data for instant offline opening (same shape as regular playlists)
+    const storedTracks = tracks.map(t => ({
+        id: t.id,
+        name: t.name,
+        artists: t.artists,
+        album: t.album || '',
+        album_art: t.album_art || t.image || '/static/icon.svg',
+        album_id: t.album_id || '',
+        isrc: t.isrc || t.id,
+        duration: t.duration || '0:00',
+        source: t.source || 'spotify'
+    }));
+
     state.watchedPlaylists.push({
         spotifyId: spotifyId,
         name: name,
         coverArt: coverArt || '/static/icon.svg',
         trackCount: tracks.length,
         trackHashes: Array.from(trackHashes),
+        tracks: storedTracks,
         lastSynced: new Date().toISOString(),
         newTracks: 0
     });
@@ -158,6 +173,19 @@ export async function syncOneWatchedPlaylist(watched) {
             watched.name = data.results[0].name || watched.name;
             watched.coverArt = data.results[0].album_art || data.results[0].image || watched.coverArt;
         }
+
+        // Update stored tracks with fresh data from API
+        watched.tracks = data.tracks.map(t => ({
+            id: t.id,
+            name: t.name,
+            artists: t.artists,
+            album: t.album || '',
+            album_art: t.album_art || t.image || '/static/icon.svg',
+            album_id: t.album_id || '',
+            isrc: t.isrc || t.id,
+            duration: t.duration || '0:00',
+            source: t.source || 'spotify'
+        }));
 
         return { watched, newCount: newTrackKeys.length, playlistName: watched.name };
     } catch (e) {

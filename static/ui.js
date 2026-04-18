@@ -189,6 +189,12 @@ export async function openJumpBackInAlbum(trackId) {
     const track = state.history.find(t => t.id === trackId);
     if (!track) { playHistoryTrack(trackId); return; }
 
+    // Podcasts & audiobooks don't have albums — play directly with resume
+    if (track.source === 'podcast' || track.source === 'audiobook') {
+        playHistoryTrack(trackId);
+        return;
+    }
+
     if (track.album_id) {
         window.openAlbum(track.album_id);
         return;

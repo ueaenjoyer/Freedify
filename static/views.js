@@ -152,19 +152,45 @@ function renderPlaylistsView() {
                 }
                 return;
             }
-            // Click on the card itself — open the playlist
-            const spotifyUrl = `https://open.spotify.com/playlist/${el.dataset.spotifyId}`;
-            showLoading('Loading watched playlist...');
-            try {
-                const response = await fetch(`/api/search?q=${encodeURIComponent(spotifyUrl)}&type=playlist`);
-                const data = await response.json();
-                hideLoading();
-                if (data.tracks && data.results && data.results[0]) {
-                    showDetailView(data.results[0], data.tracks);
+            // Click on the card itself — open from locally stored tracks (instant, no API call)
+            const watched = state.watchedPlaylists.find(w => w.spotifyId === el.dataset.spotifyId);
+            if (watched && watched.tracks && watched.tracks.length > 0) {
+                // Open instantly from cached data — same as a regular playlist
+                const playlistItem = {
+                    id: watched.spotifyId,
+                    name: watched.name,
+                    type: 'playlist',
+                    source: 'spotify',
+                    album_art: watched.coverArt,
+                    artists: `${watched.trackCount} tracks · synced ${watched.lastSynced ? getTimeSince(watched.lastSynced) : 'never'}`,
+                    total_tracks: watched.trackCount
+                };
+                showDetailView(playlistItem, watched.tracks);
+            } else {
+                // Legacy fallback: no stored tracks yet, fetch from API
+                showLoading('Loading watched playlist...');
+                try {
+                    const spotifyUrl = `https://open.spotify.com/playlist/${el.dataset.spotifyId}`;
+                    const response = await fetch(`/api/search?q=${encodeURIComponent(spotifyUrl)}&type=playlist`);
+                    const data = await response.json();
+                    hideLoading();
+                    if (data.tracks && data.results && data.results[0]) {
+                        // Store tracks for next time
+                        if (watched) {
+                            watched.tracks = data.tracks.map(t => ({
+                                id: t.id, name: t.name, artists: t.artists,
+                                album: t.album || '', album_art: t.album_art || t.image || '/static/icon.svg',
+                                album_id: t.album_id || '', isrc: t.isrc || t.id,
+                                duration: t.duration || '0:00', source: t.source || 'spotify'
+                            }));
+                            saveWatchedPlaylists();
+                        }
+                        showDetailView(data.results[0], data.tracks);
+                    }
+                } catch (err) {
+                    hideLoading();
+                    showToast('Failed to load playlist');
                 }
-            } catch (err) {
-                hideLoading();
-                showToast('Failed to load playlist');
             }
         });
     });

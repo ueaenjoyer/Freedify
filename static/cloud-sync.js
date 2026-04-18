@@ -22,6 +22,7 @@ const SYNC_MAP = {
     podcast_history:     { stateKey: 'podcastHistory',          lsKey: 'freedify_podcast_history' },
     audiobook_history:   { stateKey: 'audiobookHistory',        lsKey: 'freedify_audiobook_history' },
     podcast_played:      { stateKey: 'podcastPlayedEpisodes',   lsKey: 'freedify_podcast_played' },
+    watched_playlists:   { stateKey: 'watchedPlaylists',        lsKey: 'freedify_watched' },
     queue_state:         { stateKey: null,                      lsKey: null },
     settings:            { stateKey: null,                      lsKey: null },
 };

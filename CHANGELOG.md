@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.4.8] - 2026-04-18
+
+### Fixed
+- **Continuous Playback Reliability** — Fixed multiple compounding issues that caused random pausing or failure to advance to the next track, especially when the browser is backgrounded on mobile:
+  - `transitionInProgress` guard now auto-clears after 5 seconds to prevent permanent lockout when crossfade/gapless transitions fail silently.
+  - `loadInProgress` guard now force-clears after 40 seconds to prevent track-load deadlocks when a previous load froze mid-flight.
+  - `handleEnded` no longer returns early if `transitionInProgress` is stuck — always clears transition flags when a track naturally ends.
+  - `handlePause` now detects background/system interrupts (Android throttling, network hiccups) vs. intentional user pauses and auto-resumes after 1.5 seconds.
+  - Added a 5-second playback watchdog interval that catches paused-but-should-be-playing, lost audio source, and missed `ended` events.
+- **Podcast Jump Back In** — Clicking a podcast or audiobook in the "Jump Back In" dashboard now correctly loads and resumes from the saved position, instead of failing to load due to the album-search logic that doesn't apply to podcasts.
+
+### Added
+- **Watched Playlists Local Cache** — Watched playlists now store full track data locally alongside metadata, enabling instant offline opening without an API call. Tracks refresh only when the 🔄 Sync button is manually clicked. Legacy watched playlists without stored tracks automatically backfill on first open.
+- **Watched Playlists Cloud Sync** — Added `watched_playlists` to the Supabase cloud sync map, so the full playlist data (including all cached tracks) syncs across devices automatically on login. Also syncs via Google Drive and Data Export/Import.
+
+---
+
 ## [1.4.7] - 2026-04-12
 
 ### Added
